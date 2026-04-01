@@ -1,24 +1,54 @@
-async function load(q = '') {
-    const token = 'הקוד_הארוך_ששלחת_לי_כאן';
-    const url = q ? 
-        `https://api.themoviedb.org/3/search/multi?query=${encodeURIComponent(q)}` : 
-        `https://api.themoviedb.org/3/trending/all/day`;
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <title>MARKLEFYNE ELITE</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <style>
+        body { background: #050505; color: #fff; font-family: sans-serif; padding: 40px; text-align: center; }
+        .gold { color: #d4af37; }
+        .card { background: #111; border: 1px solid #222; border-radius: 15px; cursor: pointer; transition: 0.4s; overflow: hidden; }
+        .card:hover { border-color: #d4af37; transform: translateY(-10px); box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+    </style>
+</head>
+<body>
+    <h1 class="text-6xl font-black italic gold mb-10 uppercase tracking-tighter">MARKLEFYNE</h1>
+    <input type="text" id="s" placeholder="חפש סרט או סדרה..." class="bg-zinc-900 border border-zinc-800 p-5 rounded-2xl w-full md:w-1/2 text-white mb-10 outline-none focus:border-gold text-center text-lg">
+    <div id="g" class="grid grid-cols-2 md:grid-cols-5 gap-8"></div>
 
-    try {
-        const r = await fetch(url, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json;charset=utf-8'
+    <script>
+        const token = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI0MzAxNTFmYjFhNTU0MzhjNGMyYmNiZGFhNjhmNWNjNiIsIm5iZiI6MTc3NTAzNTgwNC41MDIsInN1YiI6IjY5Y2NlNTljOWQ3ZDdlYWU3ZTI3ZjFmMiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.0ETYAYtuKYrs5Ho3sHw95P_GzDSvxkgQYDnuQSC3DE0';
+
+        async function load(q = '') {
+            const url = q ? 
+                `https://api.themoviedb.org/3/search/multi?query=${encodeURIComponent(q)}&language=he-IL` : 
+                `https://api.themoviedb.org/3/trending/all/day?language=he-IL`;
+
+            try {
+                const r = await fetch(url, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json;charset=utf-8'
+                    }
+                });
+                const d = await r.json();
+                const container = document.getElementById('g');
+                
+                if (d.results) {
+                    container.innerHTML = d.results.filter(i=>i.poster_path).map(i => `
+                        <div class="card p-2" onclick="window.open('https://vidsrc.me/embed/${i.media_type==='tv'?'tv':'movie'}?tmdb=${i.id}', '_blank')">
+                            <img src="https://image.tmdb.org/t/p/w500${i.poster_path}" class="rounded-xl w-full">
+                            <p class="mt-3 text-[11px] font-bold uppercase gold truncate px-2">${i.title || i.name}</p>
+                        </div>
+                    `).join('');
+                }
+            } catch (e) {
+                console.error("Error:", e);
             }
-        });
-        const d = await r.json();
-        document.getElementById('g').innerHTML = d.results.filter(i=>i.poster_path).map(i => `
-            <div class="card p-2" onclick="window.open('https://vidsrc.me/embed/${i.media_type==='tv'?'tv':'movie'}?tmdb=${i.id}', '_blank')">
-                <img src="https://image.tmdb.org/t/p/w500${i.poster_path}" class="rounded-xl w-full">
-                <p class="mt-3 text-[11px] font-bold uppercase gold truncate px-2">${i.title || i.name}</p>
-            </div>
-        `).join('');
-    } catch (e) {
-        console.error(e);
-    }
-}
+        }
+
+        document.getElementById('s').onkeypress = (e) => { if(e.key === 'Enter') load(e.target.value); };
+        load();
+    </script>
+</body>
+</html>
