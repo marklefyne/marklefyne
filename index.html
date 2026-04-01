@@ -2,100 +2,115 @@
 <html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
-    <title>MARKLEFYNE ELITE v6</title>
+    <title>MARKLEFYNE ULTRA v8</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <style>
         body { background: #020202; color: #fff; font-family: 'Inter', sans-serif; margin: 0; }
         .gold { color: #d4af37; }
-        .card { background: #0a0a0a; border: 1px solid #1a1a1a; transition: 0.4s; cursor: pointer; border-radius: 12px; overflow: hidden; position: relative; }
-        .card:hover { border-color: #d4af37; transform: translateY(-8px); box-shadow: 0 10px 30px rgba(212, 175, 55, 0.15); }
-        #s { background: #ffffff; color: #000000; font-weight: 600; }
-        .nav-btn { background: #111; border: 1px solid #222; padding: 10px 22px; border-radius: 50px; transition: 0.3s; font-size: 13px; font-weight: bold; color: #888; white-space: nowrap; outline: none; }
-        .nav-btn:hover, .nav-btn.active { border-color: #d4af37; color: #fff; background: #1a1a1a; }
-        #overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.98); z-index:100; backdrop-filter: blur(20px); flex-direction: column; align-items: center; justify-content: center; }
-        iframe { border-radius: 20px; border: 1px solid #333; background: #000; }
-        .server-btn { background: #d4af37; color: #000; padding: 8px 16px; border-radius: 50px; font-weight: 800; font-size: 11px; transition: 0.2s; }
-        .server-btn:hover { background: #fff; }
+        .card { background: #0a0a0a; border: 1px solid #1a1a1a; transition: 0.3s; cursor: pointer; border-radius: 12px; overflow: hidden; }
+        .card:hover { border-color: #d4af37; transform: scale(1.03); box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2); }
+        #s { background: #ffffff; color: #000; font-weight: 700; }
+        .nav-btn { background: #111; border: 1px solid #222; padding: 10px 20px; border-radius: 50px; font-size: 12px; font-weight: bold; color: #888; transition: 0.3s; }
+        .nav-btn.active, .nav-btn:hover { border-color: #d4af37; color: #fff; background: #1a1a1a; }
+        #overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:100; flex-direction: column; align-items: center; justify-content: center; }
+        iframe { border-radius: 15px; background: #000; width: 95%; height: 80%; border: 1px solid #333; }
+        .srv-grid { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 15px; }
+        .srv-btn { background: #111; border: 1px solid #444; color: #ccc; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; transition: 0.2s; }
+        .srv-btn.active { background: #d4af37; color: #000; border-color: #d4af37; }
     </style>
 </head>
-<body class="p-5 md:p-12 text-center">
+<body class="p-4 md:p-10">
 
     <header class="flex flex-col items-center mb-10">
-        <h1 class="text-6xl font-black italic gold tracking-tighter uppercase mb-6">MARKLEFYNE</h1>
-        <input type="text" id="s" placeholder="Search movies or series..." 
-               class="p-5 rounded-2xl w-full md:w-1/2 text-center outline-none focus:ring-4 focus:ring-yellow-600/20 transition text-lg shadow-2xl">
+        <h1 class="text-5xl font-black italic gold tracking-tighter uppercase mb-6">MARKLEFYNE</h1>
+        <input type="text" id="s" placeholder="Search movies, series, documentary..." class="p-4 rounded-xl w-full md:w-1/2 text-center outline-none shadow-2xl">
     </header>
 
-    <div class="flex flex-wrap justify-center gap-3 mb-12">
+    <div class="flex flex-wrap justify-center gap-2 mb-10">
         <button class="nav-btn active" onclick="setMode('all')">Trending</button>
         <button class="nav-btn" onclick="setMode('genre', 80)">Crime</button>
         <button class="nav-btn" onclick="setMode('genre', 99)">Documentary</button>
-        <button class="nav-btn" onclick="setMode('search', 'Dark Web')">Dark Web</button>
+        <button class="nav-btn" onclick="load('Cyber')">Cyber</button>
+        <button class="nav-btn" onclick="load('Investigation')">True Crime</button>
     </div>
 
-    <div id="g" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 text-left"></div>
-    <div id="loader" class="py-20 gold font-bold italic uppercase animate-pulse">Scanning server...</div>
+    <div id="g" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6"></div>
+    <div id="loader" class="py-10 text-center gold italic animate-pulse">Loading content...</div>
 
     <div id="overlay">
-        <div class="w-full max-w-6xl flex justify-between items-center mb-4 px-4">
-            <div class="flex gap-2">
-                <h2 id="m-title" class="text-xl font-bold gold truncate mr-4 uppercase italic"></h2>
-                <button onclick="changeServer(1)" class="server-btn">SERVER 1</button>
-                <button onclick="changeServer(2)" class="server-btn">SERVER 2</button>
-                <button onclick="changeServer(3)" class="server-btn bg-red-600 text-white">SERVER 3 (ULTRA)</button>
+        <div class="w-full max-w-6xl p-4">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="m-title" class="text-lg font-bold gold uppercase italic truncate max-w-xs"></h2>
+                <button onclick="closePlayer()" class="bg-red-600 text-white font-bold px-6 py-2 rounded-full text-xs">CLOSE X</button>
             </div>
-            <button onclick="closePlayer()" class="bg-white text-black font-bold px-8 py-2 rounded-full hover:bg-gold transition text-sm">CLOSE X</button>
+            <div id="srv-list" class="srv-grid"></div>
+            <iframe id="f" src="" frameborder="0" allowfullscreen referrerpolicy="no-referrer"></iframe>
         </div>
-        <iframe id="f" width="90%" height="75%" src="" frameborder="0" allowfullscreen 
-                referrerpolicy="no-referrer"
-                sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation">
-        </iframe>
     </div>
 
     <script>
         const token = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI0MzAxNTFmYjFhNTU0MzhjNGMyYmNiZGFhNjhmNWNjNiIsIm5iZiI6MTc3NTAzNTgwNC41MDIsInN1YiI6IjY5Y2NlNTljOWQ3ZDdlYWU3ZTI3ZjFmMiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.0ETYAYtuKYrs5Ho3sHw95P_GzDSvxkgQYDnuQSC3DE0';
         let currentPage = 1, currentMode = 'all', currentVal = '', isLoading = false, lastId = '', lastType = '';
 
+        async function load(q = '') { currentMode = 'search'; currentVal = q; fetchData(true); }
+        function setMode(m, v='') { currentMode = m; currentVal = v; fetchData(true); }
+
         async function fetchData(isNew = true) {
-            if (isLoading) return;
-            isLoading = true;
+            if (isLoading) return; isLoading = true;
             if (isNew) { currentPage = 1; document.getElementById('g').innerHTML = ''; }
-            let url = currentMode === 'all' ? `https://api.themoviedb.org/3/trending/all/day?language=en-US&page=${currentPage}` :
-                      currentMode === 'genre' ? `https://api.themoviedb.org/3/discover/movie?with_genres=${currentVal}&sort_by=popularity.desc&language=en-US&page=${currentPage}` :
-                      `https://api.themoviedb.org/3/search/multi?query=${encodeURIComponent(currentVal)}&language=en-US&page=${currentPage}`;
+            let url = currentMode === 'all' ? `https://api.themoviedb.org/3/trending/all/day?page=${currentPage}` :
+                      currentMode === 'genre' ? `https://api.themoviedb.org/3/discover/movie?with_genres=${currentVal}&page=${currentPage}` :
+                      `https://api.themoviedb.org/3/search/multi?query=${encodeURIComponent(currentVal)}&page=${currentPage}`;
             try {
                 const r = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
                 const d = await r.json();
                 if (d.results) render(d.results);
                 currentPage++;
-            } catch (e) { console.error(e); }
+            } catch (e) { }
             isLoading = false;
         }
 
-        function render(results) {
-            document.getElementById('g').innerHTML += results.filter(i => i.poster_path).map(i => `
+        function render(res) {
+            document.getElementById('g').innerHTML += res.filter(i => i.poster_path).map(i => `
                 <div class="card p-1" onclick="openPlayer('${i.media_type||'movie'}','${i.id}','${(i.title||i.name).replace(/'/g, "\\'")}')">
                     <img src="https://image.tmdb.org/t/p/w500${i.poster_path}" class="w-full rounded-lg">
-                    <div class="p-3"><p class="text-[10px] font-bold gold truncate uppercase">${i.title || i.name}</p></div>
+                    <div class="p-2"><p class="text-[10px] font-bold gold truncate uppercase">${i.title || i.name}</p></div>
                 </div>
             `).join('');
         }
 
         function openPlayer(t, id, title) {
-            lastId = id; lastType = t;
+            lastId = id; lastType = (t === 'tv' ? 'tv' : 'movie');
             document.getElementById('m-title').innerText = title;
-            changeServer(3); // מתחיל בשרת הכי חזק עכשיו
+            buildServers();
             document.getElementById('overlay').style.display = 'flex';
             document.body.style.overflow = 'hidden';
         }
 
-        function changeServer(num) {
-            const f = document.getElementById('f');
-            const type = lastType === 'tv' ? 'tv' : 'movie';
-            // מקורות חדשים ומעודכנים
-            if (num === 1) f.src = `https://vidsrc.me/embed/${type}?tmdb=${lastId}`;
-            if (num === 2) f.src = `https://vidsrc.to/embed/${type}/${lastId}`;
-            if (num === 3) f.src = `https://vidsrc.cc/v2/embed/${type}/${lastId}`;
+        function buildServers() {
+            const servers = [
+                { n: 'Server 1 (VIP)', u: `https://vidsrc.pm/embed/${lastType}/${lastId}` },
+                { n: 'Server 2 (Fast)', u: `https://vidsrc.in/embed/${lastType}/${lastId}` },
+                { n: 'Server 3 (HD)', u: `https://vidsrc.xyz/embed/${lastType}?tmdb=${lastId}` },
+                { n: 'Server 4 (Backup)', u: `https://vidsrc.cc/v2/embed/${lastType}/${lastId}` },
+                { n: 'Server 5 (Stream)', u: `https://embed.su/embed/${lastType}/${lastId}` },
+                { n: 'Server 6 (Global)', u: `https://www.2embed.cc/embed/${lastId}` },
+                { n: 'Server 7 (Alt)', u: `https://moviesapi.club/movie/${lastId}` }
+            ];
+            const container = document.getElementById('srv-list');
+            container.innerHTML = '';
+            servers.forEach((s, i) => {
+                const b = document.createElement('button');
+                b.className = 'srv-btn' + (i === 0 ? ' active' : '');
+                b.innerText = s.n;
+                b.onclick = () => {
+                    document.querySelectorAll('.srv-btn').forEach(btn => btn.classList.remove('active'));
+                    b.classList.add('active');
+                    document.getElementById('f').src = s.u;
+                };
+                container.appendChild(b);
+            });
+            document.getElementById('f').src = servers[0].u;
         }
 
         function closePlayer() {
@@ -104,7 +119,6 @@
             document.body.style.overflow = 'auto';
         }
 
-        function setMode(m, v='') { currentMode=m; currentVal=v; fetchData(true); }
         window.onscroll = () => { if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 800) fetchData(false); };
         document.getElementById('s').onkeypress = (e) => { if(e.key==='Enter') { currentMode='search'; currentVal=e.target.value; fetchData(true); } };
         fetchData();
