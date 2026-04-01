@@ -1,49 +1,24 @@
-<!DOCTYPE html>
-<html lang="he">
-<head>
-    <meta charset="UTF-8">
-    <title>MARKLEFYNE TEST</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
-    <style>
-        body { background: #050505; color: #fff; font-family: sans-serif; padding: 20px; text-align: center; }
-        .gold { color: #d4af37; }
-        .card { background: #111; border: 1px solid #222; border-radius: 10px; cursor: pointer; transition: 0.3s; }
-    </style>
-</head>
-<body>
-    <h1 class="text-4xl font-black italic gold mb-5 uppercase">MARKLEFYNE</h1>
-    <div id="status" class="mb-5 text-sm text-gray-500">בודק חיבור לשרת...</div>
-    <div id="g" class="grid grid-cols-2 md:grid-cols-5 gap-4"></div>
+async function load(q = '') {
+    const token = 'הקוד_הארוך_ששלחת_לי_כאן';
+    const url = q ? 
+        `https://api.themoviedb.org/3/search/multi?query=${encodeURIComponent(q)}` : 
+        `https://api.themoviedb.org/3/trending/all/day`;
 
-    <script>
-        const K = '15d12349bde70530741b6197a0c00067';
-        
-        async function checkConnection() {
-            const st = document.getElementById('status');
-            try {
-                const r = await fetch(`https://api.themoviedb.org/3/trending/all/day?api_key=${K}`);
-                if (r.ok) {
-                    st.innerHTML = "✅ החיבור לשרת תקין - טוען סרטים...";
-                    const d = await r.json();
-                    render(d.results);
-                } else {
-                    st.innerHTML = "❌ שגיאה: המפתח (API Key) לא תקין (401).";
-                }
-            } catch (e) {
-                st.innerHTML = "🚫 חסימת רשת: האינטרנט שלך חוסם את הגישה לשרת הסרטים.";
+    try {
+        const r = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json;charset=utf-8'
             }
-        }
-
-        function render(results) {
-            document.getElementById('g').innerHTML = results.filter(i=>i.poster_path).map(i => `
-                <div class="card p-2" onclick="window.open('https://vidsrc.me/embed/${i.media_type==='tv'?'tv':'movie'}?tmdb=${i.id}', '_blank')">
-                    <img src="https://image.tmdb.org/t/p/w500${i.poster_path}" class="rounded-lg w-full">
-                    <p class="mt-2 text-[10px] gold truncate">${i.title || i.name}</p>
-                </div>
-            `).join('');
-        }
-
-        checkConnection();
-    </script>
-</body>
-</html>
+        });
+        const d = await r.json();
+        document.getElementById('g').innerHTML = d.results.filter(i=>i.poster_path).map(i => `
+            <div class="card p-2" onclick="window.open('https://vidsrc.me/embed/${i.media_type==='tv'?'tv':'movie'}?tmdb=${i.id}', '_blank')">
+                <img src="https://image.tmdb.org/t/p/w500${i.poster_path}" class="rounded-xl w-full">
+                <p class="mt-3 text-[11px] font-bold uppercase gold truncate px-2">${i.title || i.name}</p>
+            </div>
+        `).join('');
+    } catch (e) {
+        console.error(e);
+    }
+}
