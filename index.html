@@ -14,18 +14,13 @@
         #s::placeholder { color: #666; font-weight: 400; }
 
         .nav-btn { background: #111; border: 1px solid #222; padding: 10px 22px; border-radius: 50px; font-size: 13px; font-weight: bold; color: #888; transition: 0.3s; white-space: nowrap; outline: none; }
+        .nav-btn:hover { color: #fff; border-color: #444; }
         .nav-btn.active { border-color: #d4af37; color: #fff; background: #1a1a1a; box-shadow: 0 0 15px rgba(212, 175, 55, 0.3); }
         
         #overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,1); z-index:100; flex-direction: column; }
         .top-bar { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 15px 25px; background: #000; border-bottom: 1px solid #1a1a1a; }
         
         iframe { width: 100%; flex-grow: 1; border: none; background: #000; }
-        
-        #status-msg { font-size: 10px; color: #d4af37; margin-right: 15px; text-transform: uppercase; font-weight: bold; letter-spacing: 1px; }
-        .loader-dots span { animation: blink 1.4s infinite both; }
-        .loader-dots span:nth-child(2) { animation-delay: .2s; }
-        .loader-dots span:nth-child(3) { animation-delay: .4s; }
-        @keyframes blink { 0% { opacity: .2; } 20% { opacity: 1; } 100% { opacity: .2; } }
     </style>
 </head>
 <body class="p-5 md:p-12">
@@ -36,40 +31,36 @@
     </header>
 
     <div id="cats" class="flex flex-wrap justify-center gap-3 mb-12 overflow-x-auto pb-4 px-2">
-        <button class="nav-btn active" onclick="setMode('new')">New Uploads</button>
+        <button id="btn-all" class="nav-btn active" onclick="setMode('all')">All</button>
+        <button class="nav-btn" onclick="setMode('new')">New Uploads</button>
         <button class="nav-btn" onclick="setMode('genre', 80)">Crime</button>
         <button class="nav-btn" onclick="setMode('search', 'Dark Web')">Dark Web</button>
         <button class="nav-btn" onclick="setMode('search', 'Cyber')">Cyber</button>
         <button class="nav-btn" onclick="setMode('search', 'Hacking')">Hacking</button>
         <button class="nav-btn" onclick="setMode('genre', 99)">Documentary</button>
-        <button class="nav-btn" onclick="setMode('all')">All</button>
     </div>
 
     <div id="g" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8"></div>
-    <div id="loader" class="py-20 text-center gold italic animate-pulse tracking-widest text-sm uppercase">Optimizing Stream...</div>
+    <div id="loader" class="py-20 text-center gold italic animate-pulse tracking-widest text-sm uppercase">Loading Marklefyne...</div>
 
     <div id="overlay">
         <div class="top-bar">
             <h2 id="m-title" class="text-xl font-bold gold truncate italic uppercase tracking-tighter"></h2>
-            <div class="flex items-center">
-                <div id="status-msg">Searching best source<span class="loader-dots"><span>.</span><span>.</span><span>.</span></span></div>
-                <button onclick="closePlayer()" class="bg-white text-black font-black px-8 py-2 rounded-full text-xs hover:bg-gold transition shadow-lg">CLOSE X</button>
-            </div>
+            <button onclick="closePlayer()" class="bg-white text-black font-black px-8 py-2 rounded-full text-xs hover:bg-gold transition shadow-lg">CLOSE X</button>
         </div>
-        <iframe id="f" src="" frameborder="0" allowfullscreen></iframe>
+        <iframe id="f" src="" frameborder="0" allowfullscreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture"></iframe>
     </div>
 
     <script>
         const token = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI0MzAxNTFmYjFhNTU0MzhjNGMyYmNiZGFhNjhmNWNjNiIsIm5iZiI6MTc3NTAzNTgwNC41MDIsInN1YiI6IjY5Y2NlNTljOWQ3ZDdlYWU3ZTI3ZjFmMiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.0ETYAYtuKYrs5Ho3sHw95P_GzDSvxkgQYDnuQSC3DE0';
-        let currentPage = 1, currentMode = 'new', currentVal = '', isLoading = false;
-        let lastId = '', lastType = '', currentSrv = 1, autoTimer;
+        let currentPage = 1, currentMode = 'all', currentVal = '', isLoading = false;
 
         async function fetchData(isNew = true) {
             if (isLoading) return; isLoading = true;
             if (isNew) { currentPage = 1; document.getElementById('g').innerHTML = ''; }
             const base = "https://api.themoviedb.org/3";
-            let url = currentMode === 'new' ? `${base}/discover/movie?sort_by=primary_release_date.desc&page=${currentPage}&language=en-US&release_date.lte=2026-04-01&vote_count.gte=5` :
-                      currentMode === 'all' ? `${base}/trending/all/day?page=${currentPage}&language=en-US` :
+            let url = currentMode === 'all' ? `${base}/trending/all/day?page=${currentPage}&language=en-US` :
+                      currentMode === 'new' ? `${base}/discover/movie?sort_by=primary_release_date.desc&page=${currentPage}&language=en-US&release_date.lte=2026-04-01&vote_count.gte=5` :
                       currentMode === 'genre' ? `${base}/discover/movie?with_genres=${currentVal}&page=${currentPage}&language=en-US&sort_by=popularity.desc` :
                       `${base}/search/multi?query=${encodeURIComponent(currentVal)}&page=${currentPage}&language=en-US`;
             try {
@@ -91,39 +82,14 @@
         }
 
         function openPlayer(t, id, title) {
-            lastId = id; lastType = (t === 'tv' ? 'tv' : 'movie');
-            currentSrv = 1;
+            const type = (t === 'tv' ? 'tv' : 'movie');
             document.getElementById('m-title').innerText = title;
+            document.getElementById('f').src = `https://vidsrc.me/embed/${type}?tmdb=${id}`;
             document.getElementById('overlay').style.display = 'flex';
             document.body.style.overflow = 'hidden';
-            startAutoScan();
-        }
-
-        function startAutoScan() {
-            clearTimeout(autoTimer);
-            loadSource();
-            
-            // אם הסרט לא נטען תוך 7 שניות (זמן סביר לטעינה), עובר לשרת הבא
-            autoTimer = setTimeout(() => {
-                if (currentSrv < 3) {
-                    currentSrv++;
-                    document.getElementById('status-msg').innerHTML = `Server ${currentSrv-1} slow, trying Server ${currentSrv}...`;
-                    startAutoScan();
-                } else {
-                    document.getElementById('status-msg').innerText = "All sources checked.";
-                }
-            }, 7000); 
-        }
-
-        function loadSource() {
-            const frame = document.getElementById('f');
-            if (currentSrv === 1) frame.src = `https://vidsrc.me/embed/${lastType}?tmdb=${lastId}`;
-            else if (currentSrv === 2) frame.src = `https://vidsrc.pro/embed/${lastType}/${lastId}`;
-            else frame.src = `https://vidsrc.to/embed/${lastType}/${lastId}`;
         }
 
         function closePlayer() {
-            clearTimeout(autoTimer);
             document.getElementById('overlay').style.display = 'none';
             document.getElementById('f').src = '';
             document.body.style.overflow = 'auto';
@@ -138,6 +104,8 @@
 
         window.onscroll = () => { if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 800) fetchData(false); };
         document.getElementById('s').onkeypress = (e) => { if(e.key === 'Enter') { currentMode = 'search'; currentVal = e.target.value; fetchData(true); } };
+        
+        // טעינה ראשונית על מצב All
         fetchData();
     </script>
 </body>
