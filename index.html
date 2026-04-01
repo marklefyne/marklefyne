@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
-    <title>MARKLEFYNE ELITE v12</title>
+    <title>MARKLEFYNE ELITE</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <style>
         body { background: #020202; color: #fff; font-family: 'Inter', sans-serif; margin: 0; overflow-x: hidden; }
@@ -13,25 +13,25 @@
         #s { background: #ffffff; color: #000000; font-weight: 700; border: none; }
         #s::placeholder { color: #666; }
 
-        .nav-btn { background: #111; border: 1px solid #222; padding: 10px 22px; border-radius: 50px; font-size: 13px; font-weight: bold; color: #888; transition: 0.3s; white-space: nowrap; }
+        .nav-btn { background: #111; border: 1px solid #222; padding: 10px 22px; border-radius: 50px; font-size: 13px; font-weight: bold; color: #888; transition: 0.3s; white-space: nowrap; outline: none; }
         .nav-btn.active { border-color: #d4af37; color: #fff; background: #1a1a1a; box-shadow: 0 0 15px rgba(212, 175, 55, 0.3); }
         
-        #overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.98); z-index:100; backdrop-filter: blur(20px); flex-direction: column; align-items: center; justify-content: center; }
-        iframe { border-radius: 20px; border: 1px solid #333; background: #000; width: 90%; height: 70%; }
+        #overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.98); z-index:100; backdrop-filter: blur(25px); flex-direction: column; align-items: center; justify-content: center; }
+        iframe { border-radius: 15px; border: 1px solid #333; background: #000; width: 95%; height: 70%; max-width: 1100px; }
         
-        .srv-tabs { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; justify-content: center; }
-        .srv-btn { background: #1a1a1a; border: 1px solid #333; color: #aaa; padding: 6px 15px; border-radius: 8px; font-size: 11px; font-weight: bold; transition: 0.2s; }
-        .srv-btn.active { background: #d4af37; color: #000; border-color: #d4af37; }
+        .srv-container { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; justify-content: center; }
+        .srv-btn { background: #111; border: 1px solid #333; color: #888; padding: 8px 16px; border-radius: 10px; font-size: 11px; font-weight: 800; transition: 0.2s; text-transform: uppercase; }
+        .srv-btn.active { background: #d4af37; color: #000; border-color: #d4af37; box-shadow: 0 0 10px rgba(212, 175, 55, 0.5); }
     </style>
 </head>
 <body class="p-5 md:p-12">
 
     <header class="flex flex-col items-center mb-10">
         <h1 class="text-6xl font-black italic gold tracking-tighter uppercase mb-6 text-center">MARKLEFYNE</h1>
-        <input type="text" id="s" placeholder="Search movies or series..." class="p-5 rounded-2xl w-full md:w-1/2 text-center outline-none shadow-2xl">
+        <input type="text" id="s" placeholder="Search movies or series..." class="p-5 rounded-2xl w-full md:w-1/2 text-center outline-none shadow-2xl focus:ring-4 focus:ring-yellow-600/20">
     </header>
 
-    <div id="cats" class="flex flex-wrap justify-center gap-3 mb-12">
+    <div id="cats" class="flex flex-wrap justify-center gap-3 mb-12 overflow-x-auto pb-4 px-2">
         <button class="nav-btn active" onclick="setMode('new')">New Uploads</button>
         <button class="nav-btn" onclick="setMode('genre', 80)">Crime</button>
         <button class="nav-btn" onclick="setMode('search', 'Dark Web')">Dark Web</button>
@@ -42,30 +42,31 @@
     </div>
 
     <div id="g" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8"></div>
-    <div id="loader" class="py-10 text-center gold italic animate-pulse">Scanning database...</div>
+    <div id="loader" class="py-20 text-center gold italic animate-pulse tracking-widest text-sm">INITIALIZING SECURE CONNECTION...</div>
 
     <div id="overlay">
-        <div class="w-full max-w-6xl px-4 flex flex-col items-center">
-            <div class="w-full flex justify-between items-center mb-4">
-                <h2 id="m-title" class="text-xl font-bold gold truncate uppercase italic"></h2>
-                <button onclick="closePlayer()" class="bg-white text-black font-bold px-6 py-2 rounded-full text-xs uppercase">Close X</button>
+        <div class="w-full max-w-6xl flex flex-col items-center px-4">
+            <div class="w-full flex justify-between items-center mb-6">
+                <h2 id="m-title" class="text-xl font-bold gold truncate italic uppercase tracking-tighter"></h2>
+                <button onclick="closePlayer()" class="bg-white text-black font-black px-8 py-2 rounded-full text-xs hover:bg-gold transition">CLOSE X</button>
             </div>
             
-            <div class="srv-tabs" id="srv-tabs"></div>
+            <div class="srv-container" id="srv-list"></div>
             
             <iframe id="f" src="" frameborder="0" allowfullscreen referrerpolicy="no-referrer"></iframe>
+            <p class="text-[10px] text-gray-500 mt-4 uppercase italic">If media is unavailable, try switching servers above.</p>
         </div>
     </div>
 
     <script>
         const token = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI0MzAxNTFmYjFhNTU0MzhjNGMyYmNiZGFhNjhmNWNjNiIsIm5iZiI6MTc3NTAzNTgwNC41MDIsInN1YiI6IjY5Y2NlNTljOWQ3ZDdlYWU3ZTI3ZjFmMiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.0ETYAYtuKYrs5Ho3sHw95P_GzDSvxkgQYDnuQSC3DE0';
-        let currentPage = 1, currentMode = 'new', currentVal = '', isLoading = false, lastId = '', lastType = '';
+        let currentPage = 1, currentMode = 'new', currentVal = '', isLoading = false, curId = '', curType = '';
 
         async function fetchData(isNew = true) {
             if (isLoading) return; isLoading = true;
             if (isNew) { currentPage = 1; document.getElementById('g').innerHTML = ''; }
             const base = "https://api.themoviedb.org/3";
-            let url = currentMode === 'new' ? `${base}/discover/movie?sort_by=primary_release_date.desc&page=${currentPage}&language=en-US&release_date.lte=2026-04-01&vote_count.gte=5` :
+            let url = currentMode === 'new' ? `${base}/discover/movie?sort_by=primary_release_date.desc&page=${currentPage}&language=en-US&release_date.lte=2026-04-01&vote_count.gte=8` :
                       currentMode === 'all' ? `${base}/trending/all/day?page=${currentPage}&language=en-US` :
                       currentMode === 'genre' ? `${base}/discover/movie?with_genres=${currentVal}&page=${currentPage}&language=en-US&sort_by=popularity.desc` :
                       `${base}/search/multi?query=${encodeURIComponent(currentVal)}&page=${currentPage}&language=en-US`;
@@ -82,35 +83,34 @@
             document.getElementById('g').innerHTML += results.filter(i => i.poster_path).map(i => `
                 <div class="card p-1" onclick="openPlayer('${i.media_type||'movie'}','${i.id}','${(i.title||i.name).replace(/'/g, "\\'")}')">
                     <img src="https://image.tmdb.org/t/p/w500${i.poster_path}" class="w-full rounded-lg">
-                    <div class="p-3"><p class="text-[11px] font-bold gold truncate uppercase">${i.title || i.name}</p></div>
+                    <div class="p-3"><p class="text-[11px] font-bold gold truncate uppercase tracking-tighter">${i.title || i.name}</p></div>
                 </div>
             `).join('');
         }
 
         function openPlayer(t, id, title) {
-            lastId = id; lastType = (t === 'tv' ? 'tv' : 'movie');
+            curId = id; curType = (t === 'tv' ? 'tv' : 'movie');
             document.getElementById('m-title').innerText = title;
-            setupServers();
+            
+            // רשימת שרתים אגרסיבית שעוקפת חסימות דומיין
+            const servers = [
+                { name: "Server Alpha", url: `https://vidsrc.cc/v2/embed/${curType}/${curId}` },
+                { name: "Server Bravo", url: `https://embed.su/embed/${curType}/${curId}` },
+                { name: "Server Charlie", url: `https://vidsrc.xyz/embed/${curType}?tmdb=${curId}` },
+                { name: "Server Delta", url: `https://multiembed.mov/directstream.php?video_id=${curId}&tmdb=1` }
+            ];
+
+            const srvList = document.getElementById('srv-list');
+            srvList.innerHTML = servers.map((s, i) => `
+                <button class="srv-btn ${i===0?'active':''}" onclick="loadSrv('${s.url}', this)">${s.name}</button>
+            `).join('');
+
+            loadSrv(servers[0].url);
             document.getElementById('overlay').style.display = 'flex';
             document.body.style.overflow = 'hidden';
         }
 
-        function setupServers() {
-            // רשימת שרתים מעודכנת שעובדת ב-GitHub
-            const servers = [
-                { name: "Server 1 (Primary)", url: `https://vidsrc.xyz/embed/${lastType}?tmdb=${lastId}` },
-                { name: "Server 2 (VIP)", url: `https://vidsrc.pm/embed/${lastType}/${lastId}` },
-                { name: "Server 3 (HD)", url: `https://embed.su/embed/${lastType}/${lastId}` },
-                { name: "Server 4 (Alternative)", url: `https://vidsrc.cc/v2/embed/${lastType}/${lastId}` }
-            ];
-            const container = document.getElementById('srv-tabs');
-            container.innerHTML = servers.map((s, i) => `
-                <button class="srv-btn ${i===0?'active':''}" onclick="switchSrv('${s.url}', this)">${s.name}</button>
-            `).join('');
-            switchSrv(servers[0].url);
-        }
-
-        function switchSrv(url, btn) {
+        function loadSrv(url, btn) {
             document.getElementById('f').src = url;
             if(btn) {
                 document.querySelectorAll('.srv-btn').forEach(b => b.classList.remove('active'));
