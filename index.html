@@ -2,115 +2,97 @@
 <html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
-    <title>MARKLEFYNE ULTRA v8</title>
+    <title>MARKLEFYNE ELITE</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <style>
         body { background: #020202; color: #fff; font-family: 'Inter', sans-serif; margin: 0; }
         .gold { color: #d4af37; }
         .card { background: #0a0a0a; border: 1px solid #1a1a1a; transition: 0.3s; cursor: pointer; border-radius: 12px; overflow: hidden; }
-        .card:hover { border-color: #d4af37; transform: scale(1.03); box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2); }
-        #s { background: #ffffff; color: #000; font-weight: 700; }
+        .card:hover { border-color: #d4af37; transform: translateY(-5px); }
+        
+        /* תיקון שורת החיפוש - טקסט שחור על רקע לבן */
+        #s { background: #ffffff; color: #000000; font-weight: 700; }
+        #s::placeholder { color: #555; font-weight: 400; }
+
         .nav-btn { background: #111; border: 1px solid #222; padding: 10px 20px; border-radius: 50px; font-size: 12px; font-weight: bold; color: #888; transition: 0.3s; }
         .nav-btn.active, .nav-btn:hover { border-color: #d4af37; color: #fff; background: #1a1a1a; }
-        #overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:100; flex-direction: column; align-items: center; justify-content: center; }
-        iframe { border-radius: 15px; background: #000; width: 95%; height: 80%; border: 1px solid #333; }
-        .srv-grid { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 15px; }
-        .srv-btn { background: #111; border: 1px solid #444; color: #ccc; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; transition: 0.2s; }
-        .srv-btn.active { background: #d4af37; color: #000; border-color: #d4af37; }
+        
+        #overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.98); z-index:100; backdrop-filter: blur(20px); flex-direction: column; align-items: center; justify-content: center; }
+        iframe { border-radius: 20px; border: 1px solid #333; background: #000; width: 90%; height: 75%; }
     </style>
 </head>
-<body class="p-4 md:p-10">
+<body class="p-5 md:p-12">
 
     <header class="flex flex-col items-center mb-10">
-        <h1 class="text-5xl font-black italic gold tracking-tighter uppercase mb-6">MARKLEFYNE</h1>
-        <input type="text" id="s" placeholder="Search movies, series, documentary..." class="p-4 rounded-xl w-full md:w-1/2 text-center outline-none shadow-2xl">
+        <h1 class="text-6xl font-black italic gold tracking-tighter uppercase mb-6 text-center">MARKLEFYNE</h1>
+        <input type="text" id="s" placeholder="Search for movies or series..." 
+               class="p-5 rounded-2xl w-full md:w-1/2 text-center outline-none shadow-2xl transition focus:ring-4 focus:ring-yellow-600/20">
     </header>
 
-    <div class="flex flex-wrap justify-center gap-2 mb-10">
+    <div class="flex flex-wrap justify-center gap-3 mb-12">
         <button class="nav-btn active" onclick="setMode('all')">Trending</button>
         <button class="nav-btn" onclick="setMode('genre', 80)">Crime</button>
         <button class="nav-btn" onclick="setMode('genre', 99)">Documentary</button>
-        <button class="nav-btn" onclick="load('Cyber')">Cyber</button>
-        <button class="nav-btn" onclick="load('Investigation')">True Crime</button>
+        <button class="nav-btn" onclick="setMode('search', 'Dark Web')">Dark Web</button>
+        <button class="nav-btn" onclick="setMode('search', 'Cyber')">Cyber</button>
     </div>
 
-    <div id="g" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6"></div>
-    <div id="loader" class="py-10 text-center gold italic animate-pulse">Loading content...</div>
+    <div id="g" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8"></div>
+    <div id="loader" class="py-10 text-center gold italic animate-pulse text-sm">LOADING MORE CONTENT...</div>
 
     <div id="overlay">
-        <div class="w-full max-w-6xl p-4">
-            <div class="flex justify-between items-center mb-4">
-                <h2 id="m-title" class="text-lg font-bold gold uppercase italic truncate max-w-xs"></h2>
-                <button onclick="closePlayer()" class="bg-red-600 text-white font-bold px-6 py-2 rounded-full text-xs">CLOSE X</button>
-            </div>
-            <div id="srv-list" class="srv-grid"></div>
-            <iframe id="f" src="" frameborder="0" allowfullscreen referrerpolicy="no-referrer"></iframe>
+        <div class="w-full max-w-6xl flex justify-between items-center mb-4 px-4">
+            <h2 id="m-title" class="text-2xl font-bold gold truncate uppercase italic"></h2>
+            <button onclick="closePlayer()" class="bg-white text-black font-bold px-8 py-2 rounded-full hover:bg-gold transition shadow-lg text-sm">CLOSE X</button>
         </div>
+        <iframe id="f" src="" frameborder="0" allowfullscreen 
+                sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation">
+        </iframe>
     </div>
 
     <script>
         const token = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI0MzAxNTFmYjFhNTU0MzhjNGMyYmNiZGFhNjhmNWNjNiIsIm5iZiI6MTc3NTAzNTgwNC41MDIsInN1YiI6IjY5Y2NlNTljOWQ3ZDdlYWU3ZTI3ZjFmMiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.0ETYAYtuKYrs5Ho3sHw95P_GzDSvxkgQYDnuQSC3DE0';
-        let currentPage = 1, currentMode = 'all', currentVal = '', isLoading = false, lastId = '', lastType = '';
-
-        async function load(q = '') { currentMode = 'search'; currentVal = q; fetchData(true); }
-        function setMode(m, v='') { currentMode = m; currentVal = v; fetchData(true); }
+        
+        let currentPage = 1, currentMode = 'all', currentVal = '', isLoading = false;
 
         async function fetchData(isNew = true) {
-            if (isLoading) return; isLoading = true;
+            if (isLoading) return;
+            isLoading = true;
             if (isNew) { currentPage = 1; document.getElementById('g').innerHTML = ''; }
-            let url = currentMode === 'all' ? `https://api.themoviedb.org/3/trending/all/day?page=${currentPage}` :
-                      currentMode === 'genre' ? `https://api.themoviedb.org/3/discover/movie?with_genres=${currentVal}&page=${currentPage}` :
-                      `https://api.themoviedb.org/3/search/multi?query=${encodeURIComponent(currentVal)}&page=${currentPage}`;
+
+            let url = '';
+            // כל הקריאות הן ב-language=en-US לכותרות באנגלית
+            if (currentMode === 'all') url = `https://api.themoviedb.org/3/trending/all/day?language=en-US&page=${currentPage}`;
+            else if (currentMode === 'genre') url = `https://api.themoviedb.org/3/discover/movie?with_genres=${currentVal}&language=en-US&page=${currentPage}&sort_by=popularity.desc`;
+            else if (currentMode === 'search') url = `https://api.themoviedb.org/3/search/multi?query=${encodeURIComponent(currentVal)}&language=en-US&page=${currentPage}`;
+
             try {
                 const r = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
                 const d = await r.json();
                 if (d.results) render(d.results);
                 currentPage++;
-            } catch (e) { }
+            } catch (e) { console.error(e); }
             isLoading = false;
         }
 
-        function render(res) {
-            document.getElementById('g').innerHTML += res.filter(i => i.poster_path).map(i => `
+        function render(results) {
+            const container = document.getElementById('g');
+            container.innerHTML += results.filter(i => i.poster_path).map(i => `
                 <div class="card p-1" onclick="openPlayer('${i.media_type||'movie'}','${i.id}','${(i.title||i.name).replace(/'/g, "\\'")}')">
                     <img src="https://image.tmdb.org/t/p/w500${i.poster_path}" class="w-full rounded-lg">
-                    <div class="p-2"><p class="text-[10px] font-bold gold truncate uppercase">${i.title || i.name}</p></div>
+                    <div class="p-3">
+                        <p class="text-[11px] font-bold gold truncate uppercase">${i.title || i.name}</p>
+                    </div>
                 </div>
             `).join('');
         }
 
         function openPlayer(t, id, title) {
-            lastId = id; lastType = (t === 'tv' ? 'tv' : 'movie');
             document.getElementById('m-title').innerText = title;
-            buildServers();
+            // חזרה לכתובת המקורית שאהבת
+            document.getElementById('f').src = `https://vidsrc.me/embed/${t==='tv'?'tv':'movie'}?tmdb=${id}`;
             document.getElementById('overlay').style.display = 'flex';
             document.body.style.overflow = 'hidden';
-        }
-
-        function buildServers() {
-            const servers = [
-                { n: 'Server 1 (VIP)', u: `https://vidsrc.pm/embed/${lastType}/${lastId}` },
-                { n: 'Server 2 (Fast)', u: `https://vidsrc.in/embed/${lastType}/${lastId}` },
-                { n: 'Server 3 (HD)', u: `https://vidsrc.xyz/embed/${lastType}?tmdb=${lastId}` },
-                { n: 'Server 4 (Backup)', u: `https://vidsrc.cc/v2/embed/${lastType}/${lastId}` },
-                { n: 'Server 5 (Stream)', u: `https://embed.su/embed/${lastType}/${lastId}` },
-                { n: 'Server 6 (Global)', u: `https://www.2embed.cc/embed/${lastId}` },
-                { n: 'Server 7 (Alt)', u: `https://moviesapi.club/movie/${lastId}` }
-            ];
-            const container = document.getElementById('srv-list');
-            container.innerHTML = '';
-            servers.forEach((s, i) => {
-                const b = document.createElement('button');
-                b.className = 'srv-btn' + (i === 0 ? ' active' : '');
-                b.innerText = s.n;
-                b.onclick = () => {
-                    document.querySelectorAll('.srv-btn').forEach(btn => btn.classList.remove('active'));
-                    b.classList.add('active');
-                    document.getElementById('f').src = s.u;
-                };
-                container.appendChild(b);
-            });
-            document.getElementById('f').src = servers[0].u;
         }
 
         function closePlayer() {
@@ -119,8 +101,28 @@
             document.body.style.overflow = 'auto';
         }
 
-        window.onscroll = () => { if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 800) fetchData(false); };
-        document.getElementById('s').onkeypress = (e) => { if(e.key==='Enter') { currentMode='search'; currentVal=e.target.value; fetchData(true); } };
+        function setMode(m, v='') {
+            currentMode = m; currentVal = v;
+            fetchData(true);
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            if(event) event.target.classList.add('active');
+        }
+
+        // גלילה אינסופית
+        window.onscroll = () => {
+            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 800) {
+                fetchData(false);
+            }
+        };
+
+        document.getElementById('s').onkeypress = (e) => { 
+            if(e.key === 'Enter') {
+                currentMode = 'search';
+                currentVal = e.target.value;
+                fetchData(true);
+            }
+        };
+
         fetchData();
     </script>
 </body>
