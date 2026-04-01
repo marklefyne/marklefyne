@@ -7,14 +7,12 @@
     <style>
         body { background: #020202; color: #fff; font-family: 'Inter', sans-serif; margin: 0; }
         .gold { color: #d4af37; }
-        .card { background: #0a0a0a; border: 1px solid #1a1a1a; transition: 0.3s; cursor: pointer; border-radius: 12px; overflow: hidden; }
-        .card:hover { border-color: #d4af37; transform: translateY(-5px); }
+        .card { background: #0a0a0a; border: 1px solid #1a1a1a; transition: 0.3s; cursor: pointer; border-radius: 12px; overflow: hidden; position: relative; }
+        .card:hover { border-color: #d4af37; transform: translateY(-5px); box-shadow: 0 10px 20px rgba(212, 175, 55, 0.15); }
         
-        /* שורת החיפוש */
-        #s { background: #ffffff; color: #000000; font-weight: 700; }
-        #s::placeholder { color: #555; font-weight: 400; }
+        #s { background: #ffffff; color: #000000; font-weight: 700; border: none; }
+        #s::placeholder { color: #666; font-weight: 400; }
 
-        /* כפתורי קטגוריה - שיפור סימון פעיל */
         .nav-btn { background: #111; border: 1px solid #222; padding: 10px 22px; border-radius: 50px; font-size: 13px; font-weight: bold; color: #888; transition: 0.3s; white-space: nowrap; outline: none; }
         .nav-btn:hover { color: #fff; border-color: #444; }
         .nav-btn.active { border-color: #d4af37; color: #fff; background: #1a1a1a; box-shadow: 0 0 15px rgba(212, 175, 55, 0.3); }
@@ -28,7 +26,7 @@
     <header class="flex flex-col items-center mb-10">
         <h1 class="text-6xl font-black italic gold tracking-tighter uppercase mb-6 text-center">MARKLEFYNE</h1>
         <input type="text" id="s" placeholder="Search movies or series..." 
-               class="p-5 rounded-2xl w-full md:w-1/2 text-center outline-none shadow-2xl transition focus:ring-4 focus:ring-yellow-600/20">
+               class="p-5 rounded-2xl w-full md:w-1/2 text-center outline-none shadow-2xl focus:ring-4 focus:ring-yellow-600/20">
     </header>
 
     <div id="cats" class="flex flex-wrap justify-center gap-3 mb-12 overflow-x-auto pb-4">
@@ -42,7 +40,7 @@
     </div>
 
     <div id="g" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8"></div>
-    <div id="loader" class="py-10 text-center gold italic animate-pulse text-sm">SCANNING FOR CONTENT...</div>
+    <div id="loader" class="py-10 text-center gold italic animate-pulse text-sm uppercase">Updating Database...</div>
 
     <div id="overlay">
         <div class="w-full max-w-6xl flex justify-between items-center mb-4 px-4">
@@ -64,14 +62,21 @@
             isLoading = true;
             if (isNew) { currentPage = 1; document.getElementById('g').innerHTML = ''; }
 
-            let url = '';
             const base = "https://api.themoviedb.org/3";
             const lang = "&language=en-US";
+            let url = '';
 
-            if (currentMode === 'new') url = `${base}/discover/movie?sort_by=primary_release_date.desc&page=${currentPage}${lang}&release_date.lte=2026-04-01&vote_count.gte=10`;
-            else if (currentMode === 'all') url = `${base}/trending/all/day?page=${currentPage}${lang}`;
-            else if (currentMode === 'genre') url = `${base}/discover/movie?with_genres=${currentVal}&page=${currentPage}${lang}&sort_by=popularity.desc`;
-            else if (currentMode === 'search') url = `${base}/search/multi?query=${encodeURIComponent(currentVal)}&page=${currentPage}${lang}`;
+            if (currentMode === 'new') {
+                // מביא את הסרטים הכי חדשים שיצאו עד היום (1 באפריל 2026)
+                const today = new Date().toISOString().split('T')[0];
+                url = `${base}/discover/movie?sort_by=primary_release_date.desc&page=${currentPage}${lang}&release_date.lte=${today}&vote_count.gte=5`;
+            } else if (currentMode === 'all') {
+                url = `${base}/trending/all/day?page=${currentPage}${lang}`;
+            } else if (currentMode === 'genre') {
+                url = `${base}/discover/movie?with_genres=${currentVal}&page=${currentPage}${lang}&sort_by=popularity.desc`;
+            } else if (currentMode === 'search') {
+                url = `${base}/search/multi?query=${encodeURIComponent(currentVal)}&page=${currentPage}${lang}`;
+            }
 
             try {
                 const r = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
@@ -96,6 +101,7 @@
 
         function openPlayer(t, id, title) {
             document.getElementById('m-title').innerText = title;
+            // השרת המקורי והחלק שאהבת
             document.getElementById('f').src = `https://vidsrc.me/embed/${t==='tv'?'tv':'movie'}?tmdb=${id}`;
             document.getElementById('overlay').style.display = 'flex';
             document.body.style.overflow = 'hidden';
@@ -109,19 +115,13 @@
 
         function setMode(m, v='') {
             currentMode = m; currentVal = v;
-            
-            // עדכון ויזואלי של הכפתור הפעיל
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            const clickedBtn = event ? event.currentTarget : null;
-            if(clickedBtn) clickedBtn.classList.add('active');
-            
+            if(event) event.currentTarget.classList.add('active');
             fetchData(true);
         }
 
         window.onscroll = () => {
-            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 800) {
-                fetchData(false);
-            }
+            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 800) fetchData(false);
         };
 
         document.getElementById('s').onkeypress = (e) => { 
