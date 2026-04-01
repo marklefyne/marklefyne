@@ -14,14 +14,15 @@
         #s::placeholder { color: #666; font-weight: 400; }
 
         .nav-btn { background: #111; border: 1px solid #222; padding: 10px 22px; border-radius: 50px; font-size: 13px; font-weight: bold; color: #888; transition: 0.3s; white-space: nowrap; outline: none; }
-        .nav-btn:hover { color: #fff; border-color: #444; }
         .nav-btn.active { border-color: #d4af37; color: #fff; background: #1a1a1a; box-shadow: 0 0 15px rgba(212, 175, 55, 0.3); }
         
-        /* תיקון הנגן למסך מלא */
-        #overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.98); z-index:100; backdrop-filter: blur(25px); flex-direction: column; align-items: center; justify-content: center; }
-        iframe { border-radius: 10px; border: 1px solid #333; background: #000; width: 98vw; height: 85vh; }
+        /* תיקון הנגן למקסימום גודל מסך */
+        #overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,1); z-index:100; flex-direction: column; }
         
-        .top-bar { width: 98vw; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 0 10px; }
+        .top-bar { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 15px 25px; background: rgba(0,0,0,0.8); }
+        
+        /* הנגן תופס את כל שאר הגובה והרוחב */
+        iframe { width: 100%; flex-grow: 1; border: none; background: #000; }
     </style>
 </head>
 <body class="p-5 md:p-12">
