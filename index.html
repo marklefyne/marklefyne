@@ -2,26 +2,20 @@
 <html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
-    <title>MARKLEFYNE ELITE v5</title>
+    <title>MARKLEFYNE ELITE v6</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <style>
         body { background: #020202; color: #fff; font-family: 'Inter', sans-serif; margin: 0; }
         .gold { color: #d4af37; }
         .card { background: #0a0a0a; border: 1px solid #1a1a1a; transition: 0.4s; cursor: pointer; border-radius: 12px; overflow: hidden; position: relative; }
         .card:hover { border-color: #d4af37; transform: translateY(-8px); box-shadow: 0 10px 30px rgba(212, 175, 55, 0.15); }
-        
         #s { background: #ffffff; color: #000000; font-weight: 600; }
-        #s::placeholder { color: #666; font-weight: 400; }
-
         .nav-btn { background: #111; border: 1px solid #222; padding: 10px 22px; border-radius: 50px; transition: 0.3s; font-size: 13px; font-weight: bold; color: #888; white-space: nowrap; outline: none; }
         .nav-btn:hover, .nav-btn.active { border-color: #d4af37; color: #fff; background: #1a1a1a; }
-        
         #overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.98); z-index:100; backdrop-filter: blur(20px); flex-direction: column; align-items: center; justify-content: center; }
-        iframe { border-radius: 20px; border: 1px solid #333; box-shadow: 0 0 50px rgba(0,0,0,1); background: #000; }
-        
-        .controls { display: flex; gap: 10px; align-items: center; }
+        iframe { border-radius: 20px; border: 1px solid #333; background: #000; }
         .server-btn { background: #d4af37; color: #000; padding: 8px 16px; border-radius: 50px; font-weight: 800; font-size: 11px; transition: 0.2s; }
-        .server-btn:hover { background: #fff; transform: scale(1.05); }
+        .server-btn:hover { background: #fff; }
     </style>
 </head>
 <body class="p-5 md:p-12 text-center">
@@ -32,24 +26,23 @@
                class="p-5 rounded-2xl w-full md:w-1/2 text-center outline-none focus:ring-4 focus:ring-yellow-600/20 transition text-lg shadow-2xl">
     </header>
 
-    <div class="flex flex-wrap justify-center gap-3 mb-12 overflow-x-auto pb-4">
+    <div class="flex flex-wrap justify-center gap-3 mb-12">
         <button class="nav-btn active" onclick="setMode('all')">Trending</button>
         <button class="nav-btn" onclick="setMode('genre', 80)">Crime</button>
         <button class="nav-btn" onclick="setMode('genre', 99)">Documentary</button>
         <button class="nav-btn" onclick="setMode('search', 'Dark Web')">Dark Web</button>
-        <button class="nav-btn" onclick="setMode('search', 'Cyber')">Cyber</button>
     </div>
 
     <div id="g" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 text-left"></div>
-    <div id="loader" class="py-20 gold font-bold italic uppercase animate-pulse">Scanning server for more...</div>
+    <div id="loader" class="py-20 gold font-bold italic uppercase animate-pulse">Scanning server...</div>
 
     <div id="overlay">
         <div class="w-full max-w-6xl flex justify-between items-center mb-4 px-4">
-            <div class="controls">
+            <div class="flex gap-2">
                 <h2 id="m-title" class="text-xl font-bold gold truncate mr-4 uppercase italic"></h2>
                 <button onclick="changeServer(1)" class="server-btn">SERVER 1</button>
                 <button onclick="changeServer(2)" class="server-btn">SERVER 2</button>
-                <button onclick="changeServer(3)" class="server-btn text-white bg-red-600">SERVER 3 (VIP)</button>
+                <button onclick="changeServer(3)" class="server-btn bg-red-600 text-white">SERVER 3 (ULTRA)</button>
             </div>
             <button onclick="closePlayer()" class="bg-white text-black font-bold px-8 py-2 rounded-full hover:bg-gold transition text-sm">CLOSE X</button>
         </div>
@@ -57,12 +50,10 @@
                 referrerpolicy="no-referrer"
                 sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation">
         </iframe>
-        <p class="text-zinc-500 mt-4 text-xs italic">If "Unavailable", try switching between SERVER 1, 2, and 3 above.</p>
     </div>
 
     <script>
         const token = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI0MzAxNTFmYjFhNTU0MzhjNGMyYmNiZGFhNjhmNWNjNiIsIm5iZiI6MTc3NTAzNTgwNC41MDIsInN1YiI6IjY5Y2NlNTljOWQ3ZDdlYWU3ZTI3ZjFmMiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.0ETYAYtuKYrs5Ho3sHw95P_GzDSvxkgQYDnuQSC3DE0';
-        
         let currentPage = 1, currentMode = 'all', currentVal = '', isLoading = false, lastId = '', lastType = '';
 
         async function fetchData(isNew = true) {
@@ -93,7 +84,7 @@
         function openPlayer(t, id, title) {
             lastId = id; lastType = t;
             document.getElementById('m-title').innerText = title;
-            changeServer(1);
+            changeServer(3); // מתחיל בשרת הכי חזק עכשיו
             document.getElementById('overlay').style.display = 'flex';
             document.body.style.overflow = 'hidden';
         }
@@ -101,9 +92,10 @@
         function changeServer(num) {
             const f = document.getElementById('f');
             const type = lastType === 'tv' ? 'tv' : 'movie';
+            // מקורות חדשים ומעודכנים
             if (num === 1) f.src = `https://vidsrc.me/embed/${type}?tmdb=${lastId}`;
             if (num === 2) f.src = `https://vidsrc.to/embed/${type}/${lastId}`;
-            if (num === 3) f.src = `https://vidsrc.xyz/embed/${type}?tmdb=${lastId}`;
+            if (num === 3) f.src = `https://vidsrc.cc/v2/embed/${type}/${lastId}`;
         }
 
         function closePlayer() {
