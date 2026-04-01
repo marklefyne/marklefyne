@@ -2,36 +2,36 @@
 <html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
-    <title>MARKLEFYNE ELITE</title>
+    <title>MARKLEFYNE ELITE v12</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <style>
-        body { background: #020202; color: #fff; font-family: 'Inter', sans-serif; margin: 0; }
+        body { background: #020202; color: #fff; font-family: 'Inter', sans-serif; margin: 0; overflow-x: hidden; }
         .gold { color: #d4af37; }
-        .card { background: #0a0a0a; border: 1px solid #1a1a1a; transition: 0.3s; cursor: pointer; border-radius: 12px; overflow: hidden; position: relative; }
+        .card { background: #0a0a0a; border: 1px solid #1a1a1a; transition: 0.3s; cursor: pointer; border-radius: 12px; overflow: hidden; }
         .card:hover { border-color: #d4af37; transform: translateY(-5px); box-shadow: 0 10px 25px rgba(212, 175, 55, 0.2); }
         
-        /* שורת חיפוש - טקסט שחור בולט */
         #s { background: #ffffff; color: #000000; font-weight: 700; border: none; }
-        #s::placeholder { color: #666; font-weight: 400; }
+        #s::placeholder { color: #666; }
 
-        /* כפתורי קטגוריה עם סימון פעיל */
-        .nav-btn { background: #111; border: 1px solid #222; padding: 10px 22px; border-radius: 50px; font-size: 13px; font-weight: bold; color: #888; transition: 0.3s; white-space: nowrap; outline: none; }
-        .nav-btn:hover { color: #fff; border-color: #444; }
+        .nav-btn { background: #111; border: 1px solid #222; padding: 10px 22px; border-radius: 50px; font-size: 13px; font-weight: bold; color: #888; transition: 0.3s; white-space: nowrap; }
         .nav-btn.active { border-color: #d4af37; color: #fff; background: #1a1a1a; box-shadow: 0 0 15px rgba(212, 175, 55, 0.3); }
         
         #overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.98); z-index:100; backdrop-filter: blur(20px); flex-direction: column; align-items: center; justify-content: center; }
-        iframe { border-radius: 20px; border: 1px solid #333; background: #000; width: 90%; height: 75%; }
+        iframe { border-radius: 20px; border: 1px solid #333; background: #000; width: 90%; height: 70%; }
+        
+        .srv-tabs { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; justify-content: center; }
+        .srv-btn { background: #1a1a1a; border: 1px solid #333; color: #aaa; padding: 6px 15px; border-radius: 8px; font-size: 11px; font-weight: bold; transition: 0.2s; }
+        .srv-btn.active { background: #d4af37; color: #000; border-color: #d4af37; }
     </style>
 </head>
 <body class="p-5 md:p-12">
 
     <header class="flex flex-col items-center mb-10">
         <h1 class="text-6xl font-black italic gold tracking-tighter uppercase mb-6 text-center">MARKLEFYNE</h1>
-        <input type="text" id="s" placeholder="Search movies or series..." 
-               class="p-5 rounded-2xl w-full md:w-1/2 text-center outline-none shadow-2xl focus:ring-4 focus:ring-yellow-600/20">
+        <input type="text" id="s" placeholder="Search movies or series..." class="p-5 rounded-2xl w-full md:w-1/2 text-center outline-none shadow-2xl">
     </header>
 
-    <div id="cats" class="flex flex-wrap justify-center gap-3 mb-12 overflow-x-auto pb-4">
+    <div id="cats" class="flex flex-wrap justify-center gap-3 mb-12">
         <button class="nav-btn active" onclick="setMode('new')">New Uploads</button>
         <button class="nav-btn" onclick="setMode('genre', 80)">Crime</button>
         <button class="nav-btn" onclick="setMode('search', 'Dark Web')">Dark Web</button>
@@ -42,72 +42,80 @@
     </div>
 
     <div id="g" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8"></div>
-    <div id="loader" class="py-10 text-center gold italic animate-pulse text-sm uppercase tracking-widest">Scanning Content...</div>
+    <div id="loader" class="py-10 text-center gold italic animate-pulse">Scanning database...</div>
 
     <div id="overlay">
-        <div class="w-full max-w-6xl flex justify-between items-center mb-4 px-4">
-            <h2 id="m-title" class="text-2xl font-bold gold truncate uppercase italic"></h2>
-            <button onclick="closePlayer()" class="bg-white text-black font-bold px-8 py-2 rounded-full hover:bg-gold transition shadow-lg text-sm">CLOSE X</button>
+        <div class="w-full max-w-6xl px-4 flex flex-col items-center">
+            <div class="w-full flex justify-between items-center mb-4">
+                <h2 id="m-title" class="text-xl font-bold gold truncate uppercase italic"></h2>
+                <button onclick="closePlayer()" class="bg-white text-black font-bold px-6 py-2 rounded-full text-xs uppercase">Close X</button>
+            </div>
+            
+            <div class="srv-tabs" id="srv-tabs"></div>
+            
+            <iframe id="f" src="" frameborder="0" allowfullscreen referrerpolicy="no-referrer"></iframe>
         </div>
-        <iframe id="f" src="" frameborder="0" allowfullscreen 
-                sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation"
-                referrerpolicy="no-referrer">
-        </iframe>
     </div>
 
     <script>
         const token = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI0MzAxNTFmYjFhNTU0MzhjNGMyYmNiZGFhNjhmNWNjNiIsIm5iZiI6MTc3NTAzNTgwNC41MDIsInN1YiI6IjY5Y2NlNTljOWQ3ZDdlYWU3ZTI3ZjFmMiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.0ETYAYtuKYrs5Ho3sHw95P_GzDSvxkgQYDnuQSC3DE0';
-        
-        let currentPage = 1, currentMode = 'new', currentVal = '', isLoading = false;
+        let currentPage = 1, currentMode = 'new', currentVal = '', isLoading = false, lastId = '', lastType = '';
 
         async function fetchData(isNew = true) {
-            if (isLoading) return;
-            isLoading = true;
+            if (isLoading) return; isLoading = true;
             if (isNew) { currentPage = 1; document.getElementById('g').innerHTML = ''; }
-
             const base = "https://api.themoviedb.org/3";
-            const lang = "&language=en-US";
-            let url = '';
-
-            if (currentMode === 'new') {
-                const today = new Date().toISOString().split('T')[0];
-                url = `${base}/discover/movie?sort_by=primary_release_date.desc&page=${currentPage}${lang}&release_date.lte=${today}&vote_count.gte=10`;
-            } else if (currentMode === 'all') {
-                url = `${base}/trending/all/day?page=${currentPage}${lang}`;
-            } else if (currentMode === 'genre') {
-                url = `${base}/discover/movie?with_genres=${currentVal}&page=${currentPage}${lang}&sort_by=popularity.desc`;
-            } else if (currentMode === 'search') {
-                url = `${base}/search/multi?query=${encodeURIComponent(currentVal)}&page=${currentPage}${lang}`;
-            }
-
+            let url = currentMode === 'new' ? `${base}/discover/movie?sort_by=primary_release_date.desc&page=${currentPage}&language=en-US&release_date.lte=2026-04-01&vote_count.gte=5` :
+                      currentMode === 'all' ? `${base}/trending/all/day?page=${currentPage}&language=en-US` :
+                      currentMode === 'genre' ? `${base}/discover/movie?with_genres=${currentVal}&page=${currentPage}&language=en-US&sort_by=popularity.desc` :
+                      `${base}/search/multi?query=${encodeURIComponent(currentVal)}&page=${currentPage}&language=en-US`;
             try {
                 const r = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
                 const d = await r.json();
                 if (d.results) render(d.results);
                 currentPage++;
-            } catch (e) { console.error(e); }
+            } catch (e) {}
             isLoading = false;
         }
 
         function render(results) {
-            const container = document.getElementById('g');
-            container.innerHTML += results.filter(i => i.poster_path).map(i => `
+            document.getElementById('g').innerHTML += results.filter(i => i.poster_path).map(i => `
                 <div class="card p-1" onclick="openPlayer('${i.media_type||'movie'}','${i.id}','${(i.title||i.name).replace(/'/g, "\\'")}')">
                     <img src="https://image.tmdb.org/t/p/w500${i.poster_path}" class="w-full rounded-lg">
-                    <div class="p-3">
-                        <p class="text-[11px] font-bold gold truncate uppercase tracking-tighter">${i.title || i.name}</p>
-                    </div>
+                    <div class="p-3"><p class="text-[11px] font-bold gold truncate uppercase">${i.title || i.name}</p></div>
                 </div>
             `).join('');
         }
 
         function openPlayer(t, id, title) {
+            lastId = id; lastType = (t === 'tv' ? 'tv' : 'movie');
             document.getElementById('m-title').innerText = title;
-            // שימוש בשרת vidsrc.xyz שעובד חלק ב-GitHub Pages
-            const type = (t === 'tv' ? 'tv' : 'movie');
-            document.getElementById('f').src = `https://vidsrc.xyz/embed/${type}?tmdb=${id}`;
+            setupServers();
             document.getElementById('overlay').style.display = 'flex';
             document.body.style.overflow = 'hidden';
+        }
+
+        function setupServers() {
+            // רשימת שרתים מעודכנת שעובדת ב-GitHub
+            const servers = [
+                { name: "Server 1 (Primary)", url: `https://vidsrc.xyz/embed/${lastType}?tmdb=${lastId}` },
+                { name: "Server 2 (VIP)", url: `https://vidsrc.pm/embed/${lastType}/${lastId}` },
+                { name: "Server 3 (HD)", url: `https://embed.su/embed/${lastType}/${lastId}` },
+                { name: "Server 4 (Alternative)", url: `https://vidsrc.cc/v2/embed/${lastType}/${lastId}` }
+            ];
+            const container = document.getElementById('srv-tabs');
+            container.innerHTML = servers.map((s, i) => `
+                <button class="srv-btn ${i===0?'active':''}" onclick="switchSrv('${s.url}', this)">${s.name}</button>
+            `).join('');
+            switchSrv(servers[0].url);
+        }
+
+        function switchSrv(url, btn) {
+            document.getElementById('f').src = url;
+            if(btn) {
+                document.querySelectorAll('.srv-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            }
         }
 
         function closePlayer() {
@@ -119,23 +127,12 @@
         function setMode(m, v='') {
             currentMode = m; currentVal = v;
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            if(event && event.currentTarget) event.currentTarget.classList.add('active');
+            if(event) event.currentTarget.classList.add('active');
             fetchData(true);
         }
 
-        window.onscroll = () => {
-            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 800) fetchData(false);
-        };
-
-        document.getElementById('s').onkeypress = (e) => { 
-            if(e.key === 'Enter') {
-                currentMode = 'search';
-                currentVal = e.target.value;
-                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-                fetchData(true);
-            }
-        };
-
+        window.onscroll = () => { if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 800) fetchData(false); };
+        document.getElementById('s').onkeypress = (e) => { if(e.key === 'Enter') { currentMode = 'search'; currentVal = e.target.value; fetchData(true); } };
         fetchData();
     </script>
 </body>
