@@ -5,48 +5,54 @@
     <title>MARKLEFYNE ELITE v2</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <style>
-        body { background: #020202; color: #fff; font-family: sans-serif; }
+        body { background: #020202; color: #fff; font-family: sans-serif; margin: 0; overflow-x: hidden; }
         .gold { color: #d4af37; }
-        .gold-border { border-color: #d4af37; }
-        .card { background: #0a0a0a; border: 1px solid #1a1a1a; transition: 0.4s; cursor: pointer; border-radius: 12px; overflow: hidden; }
+        .card { background: #0a0a0a; border: 1px solid #1a1a1a; transition: 0.4s; cursor: pointer; border-radius: 12px; overflow: hidden; position: relative; }
         .card:hover { border-color: #d4af37; transform: translateY(-8px); box-shadow: 0 10px 30px rgba(212, 175, 55, 0.15); }
-        .nav-btn { background: #111; border: 1px solid #222; padding: 10px 20px; border-radius: 50px; transition: 0.3s; font-size: 13px; font-weight: bold; color: #888; }
+        .nav-btn { background: #111; border: 1px solid #222; padding: 10px 22px; border-radius: 50px; transition: 0.3s; font-size: 13px; font-weight: bold; color: #888; white-space: nowrap; }
         .nav-btn:hover, .nav-btn.active { border-color: #d4af37; color: #fff; background: #1a1a1a; }
-        #overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.98); z-index:100; backdrop-filter: blur(15px); }
+        #overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.98); z-index:100; backdrop-filter: blur(20px); flex-direction: column; align-items: center; justify-content: center; }
+        iframe { border-radius: 20px; border: 1px solid #333; box-shadow: 0 0 50px rgba(0,0,0,1); background: #000; }
+        input::placeholder { color: #444; }
     </style>
 </head>
 <body class="p-5 md:p-12">
 
     <header class="flex flex-col items-center mb-10">
         <h1 class="text-6xl font-black italic gold tracking-tighter uppercase mb-6">MARKLEFYNE</h1>
-        <input type="text" id="s" placeholder="חיפוש מהיר..." 
-               class="bg-zinc-900 border border-zinc-800 p-5 rounded-2xl w-full md:w-1/2 text-white text-center outline-none focus:border-gold transition">
+        <input type="text" id="s" placeholder="חיפוש סרטים, סדרות או דוקו..." 
+               class="bg-zinc-900 border border-zinc-800 p-5 rounded-2xl w-full md:w-1/2 text-white text-center outline-none focus:border-gold transition text-lg">
     </header>
 
-    <div class="flex flex-wrap justify-center gap-3 mb-10">
+    <div class="flex flex-wrap justify-center gap-3 mb-12 overflow-x-auto pb-4">
         <button class="nav-btn active" onclick="load()">הכל</button>
         <button class="nav-btn" onclick="loadGenre(80)">פשע (Crime)</button>
         <button class="nav-btn" onclick="loadGenre(99)">דוקומנטרי</button>
         <button class="nav-btn" onclick="loadGenre(9648)">מסתורין</button>
         <button class="nav-btn" onclick="loadGenre(18)">דרמה</button>
         <button class="nav-btn" onclick="load('Dark Web')">Dark Web</button>
+        <button class="nav-btn" onclick="load('Cyber')">סייבר</button>
     </div>
 
-    <div id="g" class="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-6 gap-6"></div>
+    <div id="g" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8"></div>
 
-    <div id="overlay" class="flex flex-col items-center justify-center p-4">
-        <div class="w-full max-w-5xl flex justify-between items-center mb-4">
-            <h2 id="m-title" class="text-2xl font-bold gold"></h2>
-            <button onclick="closePlayer()" class="bg-white text-black font-bold px-6 py-2 rounded-full hover:bg-gold transition">סגור X</button>
+    <div id="overlay">
+        <div class="w-full max-w-6xl flex justify-between items-center mb-4 px-4">
+            <h2 id="m-title" class="text-2xl font-bold gold truncate ml-4"></h2>
+            <button onclick="closePlayer()" class="bg-white text-black font-bold px-8 py-2 rounded-full hover:bg-gold transition shadow-lg">סגור X</button>
         </div>
-        <iframe id="f" width="95%" height="75%" src="" frameborder="0" allowfullscreen class="rounded-3xl border border-zinc-800"></iframe>
+        <iframe id="f" width="90%" height="75%" src="" frameborder="0" 
+                allowfullscreen 
+                sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation">
+        </iframe>
+        <p class="text-zinc-500 mt-4 text-xs italic">במידה והנגן נחסם, נסה לכבות חוסמי פרסומות או להשתמש בדפדפן Brave.</p>
     </div>
 
     <script>
         const token = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI0MzAxNTFmYjFhNTU0MzhjNGMyYmNiZGFhNjhmNWNjNiIsIm5iZiI6MTc3NTAzNTgwNC41MDIsInN1YiI6IjY5Y2NlNTljOWQ3ZDdlYWU3ZTI3ZjFmMiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.0ETYAYtuKYrs5Ho3sHw95P_GzDSvxkgQYDnuQSC3DE0';
 
         async function load(q = '') {
-            updateNav(q || 'הכל');
+            updateActiveBtn(q || 'הכל');
             const url = q ? 
                 `https://api.themoviedb.org/3/search/multi?query=${encodeURIComponent(q)}&language=he-IL` : 
                 `https://api.themoviedb.org/3/trending/all/day?language=he-IL`;
@@ -54,33 +60,33 @@
         }
 
         async function loadGenre(id) {
-            updateNav(id);
+            updateActiveBtn(id);
             const url = `https://api.themoviedb.org/3/discover/movie?with_genres=${id}&sort_by=popularity.desc&language=he-IL`;
             fetchData(url);
         }
 
         async function fetchData(url) {
-            const r = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
-            const d = await r.json();
-            document.getElementById('g').innerHTML = d.results.filter(i=>i.poster_path).map(i => `
-                <div class="card p-1" onclick="openPlayer('${i.media_type||'movie'}','${i.id}','${(i.title||i.name).replace(/'/g, "\\'")}')">
-                    <img src="https://image.tmdb.org/t/p/w500${i.poster_path}" class="w-full">
-                    <div class="p-3">
-                        <p class="text-[11px] font-bold gold truncate uppercase">${i.title || i.name}</p>
-                        <p class="text-[9px] text-zinc-500 mt-1">${i.release_date || i.first_air_date || ''}</p>
+            try {
+                const r = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+                const d = await r.json();
+                const container = document.getElementById('g');
+                
+                container.innerHTML = d.results.filter(i=>i.poster_path).map(i => `
+                    <div class="card p-1" onclick="openPlayer('${i.media_type||'movie'}','${i.id}','${(i.title||i.name).replace(/'/g, "\\'")}')">
+                        <img src="https://image.tmdb.org/t/p/w500${i.poster_path}" class="w-full rounded-lg">
+                        <div class="p-3">
+                            <p class="text-[11px] font-bold gold truncate uppercase tracking-tighter">${i.title || i.name}</p>
+                            <p class="text-[9px] text-zinc-600 mt-1">${i.release_date || i.first_air_date || ''}</p>
+                        </div>
                     </div>
-                </div>
-            `).join('');
-        }
-
-        function updateNav(val) {
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            // סימון כפתור פעיל (אופציונלי)
+                `).join('');
+            } catch (e) { console.error("Fetch error:", e); }
         }
 
         function openPlayer(t, id, title) {
             document.getElementById('m-title').innerText = title;
-            document.getElementById('f').src = `https://vidsrc.me/embed/${t==='tv'?'tv':'movie'}?tmdb=${id}`;
+            const embedType = t === 'tv' ? 'tv' : 'movie';
+            document.getElementById('f').src = `https://vidsrc.me/embed/${embedType}?tmdb=${id}`;
             document.getElementById('overlay').style.display = 'flex';
             document.body.style.overflow = 'hidden';
         }
@@ -91,7 +97,13 @@
             document.body.style.overflow = 'auto';
         }
 
+        function updateActiveBtn(val) {
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            // כאן אפשר להוסיף לוגיקה לסימון הכפתור שלחצת עליו
+        }
+
         document.getElementById('s').onkeypress = (e) => { if(e.key === 'Enter') load(e.target.value); };
+        
         load();
     </script>
 </body>
