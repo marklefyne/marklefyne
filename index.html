@@ -10,12 +10,14 @@
         .card { background: #0a0a0a; border: 1px solid #1a1a1a; transition: 0.3s; cursor: pointer; border-radius: 12px; overflow: hidden; }
         .card:hover { border-color: #d4af37; transform: translateY(-5px); }
         
-        /* תיקון שורת החיפוש - טקסט שחור על רקע לבן */
+        /* שורת החיפוש */
         #s { background: #ffffff; color: #000000; font-weight: 700; }
         #s::placeholder { color: #555; font-weight: 400; }
 
-        .nav-btn { background: #111; border: 1px solid #222; padding: 10px 20px; border-radius: 50px; font-size: 12px; font-weight: bold; color: #888; transition: 0.3s; }
-        .nav-btn.active, .nav-btn:hover { border-color: #d4af37; color: #fff; background: #1a1a1a; }
+        /* כפתורי קטגוריה - שיפור סימון פעיל */
+        .nav-btn { background: #111; border: 1px solid #222; padding: 10px 22px; border-radius: 50px; font-size: 13px; font-weight: bold; color: #888; transition: 0.3s; white-space: nowrap; outline: none; }
+        .nav-btn:hover { color: #fff; border-color: #444; }
+        .nav-btn.active { border-color: #d4af37; color: #fff; background: #1a1a1a; box-shadow: 0 0 15px rgba(212, 175, 55, 0.3); }
         
         #overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.98); z-index:100; backdrop-filter: blur(20px); flex-direction: column; align-items: center; justify-content: center; }
         iframe { border-radius: 20px; border: 1px solid #333; background: #000; width: 90%; height: 75%; }
@@ -25,20 +27,22 @@
 
     <header class="flex flex-col items-center mb-10">
         <h1 class="text-6xl font-black italic gold tracking-tighter uppercase mb-6 text-center">MARKLEFYNE</h1>
-        <input type="text" id="s" placeholder="Search for movies or series..." 
+        <input type="text" id="s" placeholder="Search movies or series..." 
                class="p-5 rounded-2xl w-full md:w-1/2 text-center outline-none shadow-2xl transition focus:ring-4 focus:ring-yellow-600/20">
     </header>
 
-    <div class="flex flex-wrap justify-center gap-3 mb-12">
-        <button class="nav-btn active" onclick="setMode('all')">Trending</button>
+    <div id="cats" class="flex flex-wrap justify-center gap-3 mb-12 overflow-x-auto pb-4">
+        <button class="nav-btn active" onclick="setMode('new')">New Uploads</button>
         <button class="nav-btn" onclick="setMode('genre', 80)">Crime</button>
-        <button class="nav-btn" onclick="setMode('genre', 99)">Documentary</button>
         <button class="nav-btn" onclick="setMode('search', 'Dark Web')">Dark Web</button>
         <button class="nav-btn" onclick="setMode('search', 'Cyber')">Cyber</button>
+        <button class="nav-btn" onclick="setMode('search', 'Hacking')">Hacking</button>
+        <button class="nav-btn" onclick="setMode('genre', 99)">Documentary</button>
+        <button class="nav-btn" onclick="setMode('all')">All</button>
     </div>
 
     <div id="g" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8"></div>
-    <div id="loader" class="py-10 text-center gold italic animate-pulse text-sm">LOADING MORE CONTENT...</div>
+    <div id="loader" class="py-10 text-center gold italic animate-pulse text-sm">SCANNING FOR CONTENT...</div>
 
     <div id="overlay">
         <div class="w-full max-w-6xl flex justify-between items-center mb-4 px-4">
@@ -53,7 +57,7 @@
     <script>
         const token = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI0MzAxNTFmYjFhNTU0MzhjNGMyYmNiZGFhNjhmNWNjNiIsIm5iZiI6MTc3NTAzNTgwNC41MDIsInN1YiI6IjY5Y2NlNTljOWQ3ZDdlYWU3ZTI3ZjFmMiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.0ETYAYtuKYrs5Ho3sHw95P_GzDSvxkgQYDnuQSC3DE0';
         
-        let currentPage = 1, currentMode = 'all', currentVal = '', isLoading = false;
+        let currentPage = 1, currentMode = 'new', currentVal = '', isLoading = false;
 
         async function fetchData(isNew = true) {
             if (isLoading) return;
@@ -61,10 +65,13 @@
             if (isNew) { currentPage = 1; document.getElementById('g').innerHTML = ''; }
 
             let url = '';
-            // כל הקריאות הן ב-language=en-US לכותרות באנגלית
-            if (currentMode === 'all') url = `https://api.themoviedb.org/3/trending/all/day?language=en-US&page=${currentPage}`;
-            else if (currentMode === 'genre') url = `https://api.themoviedb.org/3/discover/movie?with_genres=${currentVal}&language=en-US&page=${currentPage}&sort_by=popularity.desc`;
-            else if (currentMode === 'search') url = `https://api.themoviedb.org/3/search/multi?query=${encodeURIComponent(currentVal)}&language=en-US&page=${currentPage}`;
+            const base = "https://api.themoviedb.org/3";
+            const lang = "&language=en-US";
+
+            if (currentMode === 'new') url = `${base}/discover/movie?sort_by=primary_release_date.desc&page=${currentPage}${lang}&release_date.lte=2026-04-01&vote_count.gte=10`;
+            else if (currentMode === 'all') url = `${base}/trending/all/day?page=${currentPage}${lang}`;
+            else if (currentMode === 'genre') url = `${base}/discover/movie?with_genres=${currentVal}&page=${currentPage}${lang}&sort_by=popularity.desc`;
+            else if (currentMode === 'search') url = `${base}/search/multi?query=${encodeURIComponent(currentVal)}&page=${currentPage}${lang}`;
 
             try {
                 const r = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
@@ -81,7 +88,7 @@
                 <div class="card p-1" onclick="openPlayer('${i.media_type||'movie'}','${i.id}','${(i.title||i.name).replace(/'/g, "\\'")}')">
                     <img src="https://image.tmdb.org/t/p/w500${i.poster_path}" class="w-full rounded-lg">
                     <div class="p-3">
-                        <p class="text-[11px] font-bold gold truncate uppercase">${i.title || i.name}</p>
+                        <p class="text-[11px] font-bold gold truncate uppercase tracking-tighter">${i.title || i.name}</p>
                     </div>
                 </div>
             `).join('');
@@ -89,7 +96,6 @@
 
         function openPlayer(t, id, title) {
             document.getElementById('m-title').innerText = title;
-            // חזרה לכתובת המקורית שאהבת
             document.getElementById('f').src = `https://vidsrc.me/embed/${t==='tv'?'tv':'movie'}?tmdb=${id}`;
             document.getElementById('overlay').style.display = 'flex';
             document.body.style.overflow = 'hidden';
@@ -103,12 +109,15 @@
 
         function setMode(m, v='') {
             currentMode = m; currentVal = v;
-            fetchData(true);
+            
+            // עדכון ויזואלי של הכפתור הפעיל
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            if(event) event.target.classList.add('active');
+            const clickedBtn = event ? event.currentTarget : null;
+            if(clickedBtn) clickedBtn.classList.add('active');
+            
+            fetchData(true);
         }
 
-        // גלילה אינסופית
         window.onscroll = () => {
             if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 800) {
                 fetchData(false);
@@ -119,6 +128,7 @@
             if(e.key === 'Enter') {
                 currentMode = 'search';
                 currentVal = e.target.value;
+                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
                 fetchData(true);
             }
         };
