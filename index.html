@@ -10,8 +10,9 @@
         .card { background: #0a0a0a; border: 1px solid #1a1a1a; transition: 0.3s; cursor: pointer; border-radius: 12px; overflow: hidden; }
         .card:hover { border-color: #d4af37; transform: translateY(-5px); box-shadow: 0 10px 25px rgba(212, 175, 55, 0.2); }
         
+        /* עיצוב שורת החיפוש שאהבת */
         #s { background: #ffffff; color: #000000; font-weight: 700; border: none; }
-        #s::placeholder { color: #666; }
+        #s::placeholder { color: #666; font-weight: 400; }
 
         .nav-btn { background: #111; border: 1px solid #222; padding: 10px 22px; border-radius: 50px; font-size: 13px; font-weight: bold; color: #888; transition: 0.3s; white-space: nowrap; outline: none; }
         .nav-btn:hover { color: #fff; border-color: #444; }
@@ -39,7 +40,7 @@
     </div>
 
     <div id="g" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8"></div>
-    <div id="loader" class="py-20 text-center gold italic animate-pulse tracking-widest text-sm uppercase">Secure Connection Established...</div>
+    <div id="loader" class="py-20 text-center gold italic animate-pulse tracking-widest text-sm uppercase">Loading Content...</div>
 
     <div id="overlay">
         <div class="w-full max-w-6xl flex flex-col items-center px-4">
@@ -48,7 +49,7 @@
                 <button onclick="closePlayer()" class="bg-white text-black font-black px-8 py-2 rounded-full text-xs hover:bg-gold transition shadow-lg">CLOSE X</button>
             </div>
             
-            <iframe id="f" src="" frameborder="0" allowfullscreen referrerpolicy="no-referrer"></iframe>
+            <iframe id="f" src="" frameborder="0" allowfullscreen></iframe>
         </div>
     </div>
 
@@ -60,7 +61,7 @@
             if (isLoading) return; isLoading = true;
             if (isNew) { currentPage = 1; document.getElementById('g').innerHTML = ''; }
             const base = "https://api.themoviedb.org/3";
-            let url = currentMode === 'new' ? `${base}/discover/movie?sort_by=primary_release_date.desc&page=${currentPage}&language=en-US&release_date.lte=2026-04-01&vote_count.gte=8` :
+            let url = currentMode === 'new' ? `${base}/discover/movie?sort_by=primary_release_date.desc&page=${currentPage}&language=en-US&release_date.lte=2026-04-01&vote_count.gte=5` :
                       currentMode === 'all' ? `${base}/trending/all/day?page=${currentPage}&language=en-US` :
                       currentMode === 'genre' ? `${base}/discover/movie?with_genres=${currentVal}&page=${currentPage}&language=en-US&sort_by=popularity.desc` :
                       `${base}/search/multi?query=${encodeURIComponent(currentVal)}&page=${currentPage}&language=en-US`;
@@ -86,8 +87,8 @@
             document.getElementById('m-title').innerText = title;
             const type = (t === 'tv' ? 'tv' : 'movie');
             
-            // המעבר לשרת .to שהוא הכי יציב טכנית כרגע
-            document.getElementById('f').src = `https://vidsrc.to/embed/${type}/${id}`;
+            // השרת המקורי והיציב שאהבת
+            document.getElementById('f').src = `https://vidsrc.me/embed/${type}?tmdb=${id}`;
             
             document.getElementById('overlay').style.display = 'flex';
             document.body.style.overflow = 'hidden';
