@@ -10,7 +10,6 @@
         .card { background: #0a0a0a; border: 1px solid #1a1a1a; transition: 0.3s; cursor: pointer; border-radius: 12px; overflow: hidden; }
         .card:hover { border-color: #d4af37; transform: translateY(-5px); box-shadow: 0 10px 25px rgba(212, 175, 55, 0.2); }
         
-        /* עיצוב שורת החיפוש שאהבת */
         #s { background: #ffffff; color: #000000; font-weight: 700; border: none; }
         #s::placeholder { color: #666; font-weight: 400; }
 
@@ -18,8 +17,11 @@
         .nav-btn:hover { color: #fff; border-color: #444; }
         .nav-btn.active { border-color: #d4af37; color: #fff; background: #1a1a1a; box-shadow: 0 0 15px rgba(212, 175, 55, 0.3); }
         
+        /* תיקון הנגן למסך מלא */
         #overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.98); z-index:100; backdrop-filter: blur(25px); flex-direction: column; align-items: center; justify-content: center; }
-        iframe { border-radius: 15px; border: 1px solid #333; background: #000; width: 95%; height: 80%; max-width: 1200px; }
+        iframe { border-radius: 10px; border: 1px solid #333; background: #000; width: 98vw; height: 85vh; }
+        
+        .top-bar { width: 98vw; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 0 10px; }
     </style>
 </head>
 <body class="p-5 md:p-12">
@@ -43,14 +45,12 @@
     <div id="loader" class="py-20 text-center gold italic animate-pulse tracking-widest text-sm uppercase">Loading Content...</div>
 
     <div id="overlay">
-        <div class="w-full max-w-6xl flex flex-col items-center px-4">
-            <div class="w-full flex justify-between items-center mb-6">
-                <h2 id="m-title" class="text-xl font-bold gold truncate italic uppercase tracking-tighter"></h2>
-                <button onclick="closePlayer()" class="bg-white text-black font-black px-8 py-2 rounded-full text-xs hover:bg-gold transition shadow-lg">CLOSE X</button>
-            </div>
-            
-            <iframe id="f" src="" frameborder="0" allowfullscreen></iframe>
+        <div class="top-bar">
+            <h2 id="m-title" class="text-xl font-bold gold truncate italic uppercase tracking-tighter"></h2>
+            <button onclick="closePlayer()" class="bg-white text-black font-black px-8 py-2 rounded-full text-xs hover:bg-gold transition shadow-lg">CLOSE X</button>
         </div>
+        
+        <iframe id="f" src="" frameborder="0" allowfullscreen></iframe>
     </div>
 
     <script>
@@ -86,10 +86,7 @@
         function openPlayer(t, id, title) {
             document.getElementById('m-title').innerText = title;
             const type = (t === 'tv' ? 'tv' : 'movie');
-            
-            // השרת המקורי והיציב שאהבת
             document.getElementById('f').src = `https://vidsrc.me/embed/${type}?tmdb=${id}`;
-            
             document.getElementById('overlay').style.display = 'flex';
             document.body.style.overflow = 'hidden';
         }
