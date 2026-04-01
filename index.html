@@ -2,49 +2,54 @@
 <html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MARKLEFYNE ELITE</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <style>
-        body { background: #020202; color: #fff; font-family: 'Inter', sans-serif; margin: 0; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
+        body { background: #020202; color: #fff; font-family: 'Inter', sans-serif; margin: 0; overflow-x: hidden; }
         .gold { color: #d4af37; }
         .card { background: #0a0a0a; border: 1px solid #1a1a1a; transition: 0.3s; cursor: pointer; border-radius: 12px; overflow: hidden; }
+        .card:hover { border-color: #d4af37; transform: translateY(-5px); box-shadow: 0 10px 25px rgba(212, 175, 55, 0.2); }
         
-        #s { background: #ffffff; color: #000000; font-weight: 700; border: none; font-size: 16px; /* מונע זום אוטומטי באייפון */ }
+        #s { background: #ffffff; color: #000000; font-weight: 700; border: none; }
+        #s::placeholder { color: #666; font-weight: 400; }
 
         .nav-btn { background: #111; border: 1px solid #222; padding: 10px 22px; border-radius: 50px; font-size: 13px; font-weight: bold; color: #888; transition: 0.3s; white-space: nowrap; outline: none; }
+        .nav-btn:hover { color: #fff; border-color: #444; }
         .nav-btn.active { border-color: #d4af37; color: #fff; background: #1a1a1a; box-shadow: 0 0 15px rgba(212, 175, 55, 0.3); }
         
         #overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,1); z-index:100; flex-direction: column; }
-        .top-bar { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #000; }
+        .top-bar { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 15px 25px; background: #000; border-bottom: 1px solid #1a1a1a; }
         
         iframe { width: 100%; flex-grow: 1; border: none; background: #000; }
     </style>
 </head>
-<body class="p-4 md:p-12">
+<body class="p-5 md:p-12">
 
-    <header class="flex flex-col items-center mb-8">
-        <h1 class="text-5xl md:text-6xl font-black italic gold tracking-tighter uppercase mb-6 text-center">MARKLEFYNE</h1>
-        <input type="text" id="s" placeholder="Search..." class="p-4 rounded-2xl w-full md:w-1/2 text-center outline-none shadow-2xl">
+    <header class="flex flex-col items-center mb-10">
+        <h1 class="text-6xl font-black italic gold tracking-tighter uppercase mb-6 text-center">MARKLEFYNE</h1>
+        <input type="text" id="s" placeholder="Search movies or series..." class="p-5 rounded-2xl w-full md:w-1/2 text-center outline-none shadow-2xl focus:ring-4 focus:ring-yellow-600/20">
     </header>
 
-    <div id="cats" class="flex flex-wrap justify-center gap-2 mb-8 overflow-x-auto pb-4 no-scrollbar">
-        <button id="default-tab" class="nav-btn active" onclick="setMode('all')">All</button>
-        <button class="nav-btn" onclick="setMode('new')">New</button>
+    <div id="cats" class="flex flex-wrap justify-center gap-3 mb-12 overflow-x-auto pb-4 px-2">
+        <button id="btn-all" class="nav-btn active" onclick="setMode('all')">All</button>
+        <button id="btn-new" class="nav-btn" onclick="setMode('new')">New Uploads</button>
         <button class="nav-btn" onclick="setMode('genre', 80)">Crime</button>
         <button class="nav-btn" onclick="setMode('search', 'Dark Web')">Dark Web</button>
+        <button class="nav-btn" onclick="setMode('search', 'Cyber')">Cyber</button>
+        <button class="nav-btn" onclick="setMode('search', 'Hacking')">Hacking</button>
         <button class="nav-btn" onclick="setMode('genre', 99)">Documentary</button>
     </div>
 
-    <div id="g" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-8"></div>
-    <div id="loader" class="py-20 text-center gold italic animate-pulse text-xs uppercase">Loading...</div>
+    <div id="g" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8"></div>
+    <div id="loader" class="py-20 text-center gold italic animate-pulse tracking-widest text-sm uppercase">Loading Content...</div>
 
     <div id="overlay">
         <div class="top-bar">
-            <h2 id="m-title" class="text-sm font-bold gold truncate italic uppercase pr-4"></h2>
-            <button onclick="closePlayer()" class="bg-white text-black font-black px-6 py-2 rounded-full text-xs shrink-0">CLOSE X</button>
+            <h2 id="m-title" class="text-xl font-bold gold truncate italic uppercase tracking-tighter"></h2>
+            <button onclick="closePlayer()" class="bg-white text-black font-black px-8 py-2 rounded-full text-xs hover:bg-gold transition shadow-lg">CLOSE X</button>
         </div>
-        <iframe id="f" src="" frameborder="0" allowfullscreen allow="autoplay; fullscreen" sandbox="allow-forms allow-scripts allow-pointer-lock allow-same-origin allow-top-navigation"></iframe>
+        <iframe id="f" src="" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>
     </div>
 
     <script>
@@ -55,10 +60,12 @@
             if (isLoading) return; isLoading = true;
             if (isNew) { currentPage = 1; document.getElementById('g').innerHTML = ''; }
             const base = "https://api.themoviedb.org/3";
-            let url = currentMode === 'all' ? `${base}/trending/all/day?page=${currentPage}` :
-                      currentMode === 'new' ? `${base}/discover/movie?sort_by=primary_release_date.desc&page=${currentPage}&vote_count.gte=5` :
-                      currentMode === 'genre' ? `${base}/discover/movie?with_genres=${currentVal}&page=${currentPage}&sort_by=popularity.desc` :
-                      `${base}/search/multi?query=${encodeURIComponent(currentVal)}&page=${currentPage}`;
+            
+            let url = currentMode === 'all' ? `${base}/trending/all/day?page=${currentPage}&language=en-US` :
+                      currentMode === 'new' ? `${base}/discover/movie?sort_by=primary_release_date.desc&page=${currentPage}&language=en-US&release_date.lte=2026-04-01&vote_count.gte=5` :
+                      currentMode === 'genre' ? `${base}/discover/movie?with_genres=${currentVal}&page=${currentPage}&language=en-US&sort_by=popularity.desc` :
+                      `${base}/search/multi?query=${encodeURIComponent(currentVal)}&page=${currentPage}&language=en-US`;
+            
             try {
                 const r = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
                 const d = await r.json();
@@ -72,7 +79,7 @@
             document.getElementById('g').innerHTML += results.filter(i => i.poster_path).map(i => `
                 <div class="card p-1" onclick="openPlayer('${i.media_type||'movie'}','${i.id}','${(i.title||i.name).replace(/'/g, "\\'")}')">
                     <img src="https://image.tmdb.org/t/p/w500${i.poster_path}" class="w-full rounded-lg">
-                    <div class="p-2"><p class="text-[10px] font-bold gold truncate uppercase">${i.title || i.name}</p></div>
+                    <div class="p-3"><p class="text-[11px] font-bold gold truncate uppercase tracking-tighter">${i.title || i.name}</p></div>
                 </div>
             `).join('');
         }
@@ -80,6 +87,7 @@
         function openPlayer(t, id, title) {
             const type = (t === 'tv' ? 'tv' : 'movie');
             document.getElementById('m-title').innerText = title;
+            // הכתובת הישירה והעובדת ביותר
             document.getElementById('f').src = `https://vidsrc.me/embed/${type}?tmdb=${id}`;
             document.getElementById('overlay').style.display = 'flex';
             document.body.style.overflow = 'hidden';
@@ -94,13 +102,17 @@
         function setMode(m, v='') {
             currentMode = m; currentVal = v;
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            if(event && event.currentTarget) event.currentTarget.classList.add('active');
+            // הדגשת הכפתור הנכון
+            if (event && event.currentTarget) {
+                event.currentTarget.classList.add('active');
+            }
             fetchData(true);
         }
 
         window.onscroll = () => { if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 800) fetchData(false); };
         document.getElementById('s').onkeypress = (e) => { if(e.key === 'Enter') { currentMode = 'search'; currentVal = e.target.value; fetchData(true); } };
         
+        // טעינה אוטומטית על ALL בסיום טעינת הדף
         window.onload = () => { fetchData(true); };
     </script>
 </body>
