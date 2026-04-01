@@ -39,7 +39,7 @@
     </div>
 
     <div id="g" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8"></div>
-    <div id="loader" class="py-20 text-center gold italic animate-pulse tracking-widest text-sm uppercase">Optimizing connection...</div>
+    <div id="loader" class="py-20 text-center gold italic animate-pulse tracking-widest text-sm uppercase">Secure Connection Established...</div>
 
     <div id="overlay">
         <div class="w-full max-w-6xl flex flex-col items-center px-4">
@@ -86,8 +86,8 @@
             document.getElementById('m-title').innerText = title;
             const type = (t === 'tv' ? 'tv' : 'movie');
             
-            // שרת icu - מהיר מאוד ועוקף חסימות ללא צורך בבחירה ידנית
-            document.getElementById('f').src = `https://vidsrc.icu/embed/${type}/${id}`;
+            // המעבר לשרת .to שהוא הכי יציב טכנית כרגע
+            document.getElementById('f').src = `https://vidsrc.to/embed/${type}/${id}`;
             
             document.getElementById('overlay').style.display = 'flex';
             document.body.style.overflow = 'hidden';
