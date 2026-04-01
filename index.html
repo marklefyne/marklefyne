@@ -8,11 +8,13 @@
         body { background: #020202; color: #fff; font-family: 'Inter', sans-serif; margin: 0; }
         .gold { color: #d4af37; }
         .card { background: #0a0a0a; border: 1px solid #1a1a1a; transition: 0.3s; cursor: pointer; border-radius: 12px; overflow: hidden; position: relative; }
-        .card:hover { border-color: #d4af37; transform: translateY(-5px); box-shadow: 0 10px 20px rgba(212, 175, 55, 0.15); }
+        .card:hover { border-color: #d4af37; transform: translateY(-5px); box-shadow: 0 10px 25px rgba(212, 175, 55, 0.2); }
         
+        /* שורת חיפוש - טקסט שחור בולט */
         #s { background: #ffffff; color: #000000; font-weight: 700; border: none; }
         #s::placeholder { color: #666; font-weight: 400; }
 
+        /* כפתורי קטגוריה עם סימון פעיל */
         .nav-btn { background: #111; border: 1px solid #222; padding: 10px 22px; border-radius: 50px; font-size: 13px; font-weight: bold; color: #888; transition: 0.3s; white-space: nowrap; outline: none; }
         .nav-btn:hover { color: #fff; border-color: #444; }
         .nav-btn.active { border-color: #d4af37; color: #fff; background: #1a1a1a; box-shadow: 0 0 15px rgba(212, 175, 55, 0.3); }
@@ -40,7 +42,7 @@
     </div>
 
     <div id="g" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8"></div>
-    <div id="loader" class="py-10 text-center gold italic animate-pulse text-sm uppercase">Updating Database...</div>
+    <div id="loader" class="py-10 text-center gold italic animate-pulse text-sm uppercase tracking-widest">Scanning Content...</div>
 
     <div id="overlay">
         <div class="w-full max-w-6xl flex justify-between items-center mb-4 px-4">
@@ -48,7 +50,8 @@
             <button onclick="closePlayer()" class="bg-white text-black font-bold px-8 py-2 rounded-full hover:bg-gold transition shadow-lg text-sm">CLOSE X</button>
         </div>
         <iframe id="f" src="" frameborder="0" allowfullscreen 
-                sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation">
+                sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation"
+                referrerpolicy="no-referrer">
         </iframe>
     </div>
 
@@ -67,9 +70,8 @@
             let url = '';
 
             if (currentMode === 'new') {
-                // מביא את הסרטים הכי חדשים שיצאו עד היום (1 באפריל 2026)
                 const today = new Date().toISOString().split('T')[0];
-                url = `${base}/discover/movie?sort_by=primary_release_date.desc&page=${currentPage}${lang}&release_date.lte=${today}&vote_count.gte=5`;
+                url = `${base}/discover/movie?sort_by=primary_release_date.desc&page=${currentPage}${lang}&release_date.lte=${today}&vote_count.gte=10`;
             } else if (currentMode === 'all') {
                 url = `${base}/trending/all/day?page=${currentPage}${lang}`;
             } else if (currentMode === 'genre') {
@@ -101,8 +103,9 @@
 
         function openPlayer(t, id, title) {
             document.getElementById('m-title').innerText = title;
-            // השרת המקורי והחלק שאהבת
-            document.getElementById('f').src = `https://vidsrc.me/embed/${t==='tv'?'tv':'movie'}?tmdb=${id}`;
+            // שימוש בשרת vidsrc.xyz שעובד חלק ב-GitHub Pages
+            const type = (t === 'tv' ? 'tv' : 'movie');
+            document.getElementById('f').src = `https://vidsrc.xyz/embed/${type}?tmdb=${id}`;
             document.getElementById('overlay').style.display = 'flex';
             document.body.style.overflow = 'hidden';
         }
@@ -116,7 +119,7 @@
         function setMode(m, v='') {
             currentMode = m; currentVal = v;
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            if(event) event.currentTarget.classList.add('active');
+            if(event && event.currentTarget) event.currentTarget.classList.add('active');
             fetchData(true);
         }
 
