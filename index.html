@@ -23,6 +23,7 @@
         
         .fix-btn { background: #1a1a1a; color: #d4af37; border: 1px solid #d4af37; padding: 5px 15px; border-radius: 5px; font-size: 10px; font-weight: bold; text-transform: uppercase; margin-right: 15px; transition: 0.2s; }
         .fix-btn:hover { background: #d4af37; color: #000; }
+        .srv-indicator { font-size: 9px; color: #555; margin-right: 10px; text-transform: uppercase; }
     </style>
 </head>
 <body class="p-5 md:p-12">
@@ -43,13 +44,14 @@
     </div>
 
     <div id="g" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8"></div>
-    <div id="loader" class="py-20 text-center gold italic animate-pulse tracking-widest text-sm uppercase">Syncing Database...</div>
+    <div id="loader" class="py-20 text-center gold italic animate-pulse tracking-widest text-sm uppercase">Global Search Active...</div>
 
     <div id="overlay">
         <div class="top-bar">
             <h2 id="m-title" class="text-xl font-bold gold truncate italic uppercase tracking-tighter"></h2>
             <div class="flex items-center">
-                <button id="retry-btn" class="fix-btn" onclick="toggleSource()">Try Another Source</button>
+                <span id="srv-name" class="srv-indicator">Server 1</span>
+                <button id="retry-btn" class="fix-btn" onclick="toggleSource()">Switch Source</button>
                 <button onclick="closePlayer()" class="bg-white text-black font-black px-8 py-2 rounded-full text-xs hover:bg-gold transition shadow-lg">CLOSE X</button>
             </div>
         </div>
@@ -98,15 +100,18 @@
 
         function loadSource() {
             const frame = document.getElementById('f');
+            document.getElementById('srv-name').innerText = `Server ${currentSrv}`;
             if (currentSrv === 1) {
                 frame.src = `https://vidsrc.me/embed/${lastType}?tmdb=${lastId}`;
-            } else {
+            } else if (currentSrv === 2) {
                 frame.src = `https://vidsrc.pro/embed/${lastType}/${lastId}`;
+            } else {
+                frame.src = `https://vidsrc.icu/embed/${lastType}/${lastId}`;
             }
         }
 
         function toggleSource() {
-            currentSrv = currentSrv === 1 ? 2 : 1;
+            currentSrv = (currentSrv % 3) + 1;
             loadSource();
         }
 
